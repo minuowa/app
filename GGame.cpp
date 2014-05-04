@@ -1,0 +1,511 @@
+#include "GGameDemoHeader.h"
+#include "GGame.h"
+#include "XString.h"
+#include <locale.h>
+#include "EEditorSheetManager.h"
+#include "XEvent.h"
+
+/******************************************************************/
+//天空在MeshBuffer中，海面和地图不在
+//天空、海面、地图均不做视锥裁剪
+/******************************************************************/
+FiImplateSingleton ( GGame );
+
+GGame::GGame ( void )
+    : mSceneMgr ( NULL )
+    , mpSelectObj ( NULL )
+    , mpSelectAnim ( NULL )
+    , mEditor ( 0 )
+    , mFinished ( false )
+{
+}
+
+GGame::~GGame ( void )
+{
+
+}
+
+void GGame::Loop()
+{
+    TIMER.Update();
+
+    if ( mIsActive )
+    {
+        INPUTSYSTEM.Update();
+        GetInput();
+    }
+
+    Update();
+
+    Render();
+}
+
+void GGame::GetInput()
+{
+    float fPass = TIMER.GetFrameTimeSec();
+
+
+    if ( INPUTSYSTEM.IskeyUp ( DIK_ESCAPE ) )
+    {
+        exit ( 0 );
+    }
+
+    static DWORD dwGetInput = 0;
+
+    eGameScene gs = mSceneMgr->mSceneMachine.GetNowScene();
+
+    switch ( gs )
+    {
+    case gsLoading:
+
+        break;
+    case gslogin:
+        break;
+
+    case  gsGame:
+
+        if ( INPUTSYSTEM.GetKeyAction ( DIK_F9 ) == DI_BUTTONUP )
+        {
+        }
+
+        //if (INPUTSYSTEM.GetKeyAction(DIK_TAB)==DI_BUTTONUP)
+        //{
+        //	dwGetInput++;
+        //	if (0==dwGetInput%2)
+        //	{
+        //		mpSelectAnim=&gAnimMesh[0];
+        //	}
+        //	else
+        //	{
+        //		mpSelectAnim=&gAnimMesh[1];
+        //	}
+        //}
+
+        if ( mpSelectAnim != NULL )
+        {
+            mpSelectAnim->GetInput ( fPass );
+        }
+
+        GMeshBaseObj *pMeshBaseObj = NULL;
+
+        POINT pt = INPUTSYSTEM.GetMousePoint();
+
+        bool bHit = false;
+
+        static bool bFlag = true;
+
+        //pMeshBaseObj = ( CXMeshBaseObj* )( GMeshManager::GetSingleton().GetInput( fPass ) );
+
+        if ( pMeshBaseObj != NULL )
+        {
+            mpSelectObj = pMeshBaseObj;
+            if ( mEditor )
+            {
+                mEditor->SetObject ( pMeshBaseObj );
+            }
+        }
+
+        if ( mpSelectObj != NULL )
+        {
+            if ( mpSelectAnim != NULL )
+            {
+                if ( !mpSelectAnim->mXPos.mbCanMoveStep )
+                {
+                    mpSelectObj->GetInput ( fPass );
+                }
+                else
+                {
+                    mpSelectObj = NULL;
+                }
+            }
+
+        }
+
+        if ( mpSelectObj != NULL )
+        {
+            if ( INPUTSYSTEM.IsPressKey ( DIK_COMMA ) )
+            {
+                //>增加速度
+                mpSelectObj->mXPos.mfSpeedMove += 0.8f;
+            }
+
+            if ( INPUTSYSTEM.IsPressKey ( DIK_PERIOD ) )
+            {
+                //<减小速度
+                mpSelectObj->mXPos.mfSpeedMove -= 0.8f;
+            }
+
+            if ( DI_BUTTONUP == INPUTSYSTEM.GetKeyAction ( DIK_DELETE ) )
+            {
+                mSceneMgr->Delete ( ( CGameStaticObj* ) mpSelectObj );
+
+            }
+
+        }
+
+
+        //↑放大，↓缩小
+        if ( INPUTSYSTEM.IsPressKey ( DIK_UPARROW ) )
+        {
+            if ( mpSelectObj != NULL )
+            {
+                mpSelectObj->mXPos.mvZoom += D3DXVECTOR3 ( 0.01f, 0.01f, 0.01f );
+            }
+
+            if ( mpSelectAnim != NULL )
+            {
+                mpSelectAnim->mXPos.mfSpeedMove += 0.5f;
+            }
+
+        }
+
+        if ( INPUTSYSTEM.IsPressKey ( DIK_DOWNARROW ) )
+        {
+            if ( mpSelectObj != NULL )
+            {
+                mpSelectObj->mXPos.mvZoom -= D3DXVECTOR3 ( 0.01f, 0.01f, 0.01f );
+            }
+
+            if ( mpSelectAnim != NULL )
+            {
+                mpSelectAnim->mXPos.mfSpeedMove -= 0.5f;
+            }
+
+        }
+
+        if ( INPUTSYSTEM.GetKeyAction ( DIK_F2 ) == DI_BUTTONUP )
+        {
+
+            if ( bFlag )
+            {
+                D9DEVICE->GetDvc()->SetRenderState ( D3DRS_FILLMODE, D3DFILL_SOLID );
+            }
+            else
+            {
+                D9DEVICE->GetDvc()->SetRenderState ( D3DRS_FILLMODE, D3DFILL_WIREFRAME );
+            }
+
+            Toggle ( bFlag );
+
+            //OPENCLOSE( mpNowMap->mLighting );
+        }
+
+        if ( INPUTSYSTEM.GetKeyAction ( DIK_F3 ) == DI_BUTTONUP )
+        {
+            //gAnimMesh[0].mXPos.mvPos = D3DXVECTOR3( 0, 0, 0 );
+            //gAnimMesh[0].UpdateForForceOnMap();
+        }
+
+        mSceneMgr->GetInput ( fPass );
+        break;
+    }
+
+}
+
+void GGame::Update( )
+{
+
+    if ( INPUTSYSTEM.IskeyUp ( DIK_TAB ) )
+    {
+        mSceneMgr->SaveScene ( "gameSceneEditor.xml" );
+        //DWORD FillMode = 0;
+        //D9DEVICE->GetDvc()->GetRenderState( D3DRS_FILLMODE, &FillMode );
+        //D9DEVICE->GetDvc()->SetRenderState( D3DRS_FILLMODE, FillMode == D3DFILL_WIREFRAME ? D3DFILL_SOLID : D3DFILL_WIREFRAME );
+
+    }
+
+
+    eGameScene gs = mSceneMgr->mSceneMachine.GetNowScene();
+
+    float fPass = TIMER.GetFrameTimeSec();
+
+    switch ( gs )
+    {
+
+    case gsLoading:
+
+        break;
+
+    case gsGame:
+        mSceneMgr->Update ( fPass );
+        //gAnimMesh[0].Update();
+        //mSea.Update( fPass );
+
+        break;
+    }
+
+
+}
+
+void GGame::Render( )
+{
+    float fPass = TIMER.GetFrameTimeSec();
+
+    eGameScene gs = mSceneMgr->mSceneMachine.GetNowScene();
+
+    mSceneMgr->SetView();
+
+    D9DEVICE->BeginRender();
+
+    switch ( gs )
+    {
+
+    case gsLoading:
+
+        //mpUIMgr->RenderLoading( fPass );
+
+        break;
+
+    case  gsGame:
+
+        GameRender ( fPass );
+
+        break;
+
+    case gslogin:
+
+        //mpUIMgr->RenderLogin(fPass);
+
+        break;
+    }
+
+    D9DEVICE->EndRender();
+
+
+
+}
+
+bool GGame::InitBase ( HWND mainWnd, EEditorManager* editor/*=0*/ )
+{
+    //setlocale( LC_ALL, "zh_CN.UTF-8" );
+
+    //初始化大概500ms
+    mEditor = editor;
+    HRESULT hr = NULL;
+
+    bool bSuccess = false;
+
+    int nSuccess = ERR_INT;
+
+
+
+    CoInitialize ( NULL );
+    //初始化鼠标
+    bSuccess = gCursor.Init();
+    gCursor.SetNowCursor ( curNormal );
+
+    //初始化框架
+    CXASSERT_RETURN_FALSE ( __super::InitBase ( mainWnd ) );
+    if ( mEditor )
+    {
+        mEditor->SetWndProc ( ( void* ) WndProc );
+    }
+    //初始化D3D设备
+    CXASSERT_RETURN_FALSE ( D9DEVICE->Init ( mMainWin ) );
+
+
+    //初始化Input
+    hr = INPUTSYSTEM.Init ( mInst, mMainWin );
+
+    if ( FAILED ( hr ) )
+        return false;
+
+    ////初始化UI
+    //mpUIMgr = new CUIManger;
+
+    //if ( !mpUIMgr->Init() )
+    //    return false;
+
+
+    //初始化场景管理器
+    mSceneMgr = new GSceneMgr;
+
+    bSuccess = mSceneMgr->Init ( D9DEVICE );
+
+    if ( !bSuccess )
+        return false;
+
+    GMeshManager::GetSingleton().Init();
+
+    D9DEVICE->ResetRenderState();
+
+    bSuccess = gEffect.Create ( "..\\Data\\Effect\\SimpleEffect.fx" );
+
+    gEffect.m_hWorldViewProj = gEffect.mD3DEffect->GetParameterByName ( 0, "matWorldViewProj" );
+
+    gEffect.m_hWorld = gEffect.mD3DEffect->GetParameterByName ( 0, "matWorld" );
+
+    gEffect.m_Tech = gEffect.mD3DEffect->GetTechniqueByName ( "TShader" );
+
+    gEffect.m_hUseMaterialOnly = gEffect.mD3DEffect->GetParameterByName ( 0, "bUseMaterialOnly" );
+
+    gEffect.m_hTexture = gEffect.mD3DEffect->GetParameterByName ( 0, "TexObj" );
+
+    gEffect.m_hMtrlAmbient = gEffect.mD3DEffect->GetParameterByName ( 0, "materialAmbient" );
+
+    gEffect.m_hMtrlDiffuse = gEffect.mD3DEffect->GetParameterByName ( 0, "materialDiffuse" );
+
+    gEffect.m_hOpenLight = gEffect.mD3DEffect->GetParameterByName ( 0, "bOpenLight" );
+
+
+    //加载渲染对象大概3000ms
+
+    CoUninitialize();
+
+
+    gEvent.Create ( "Load" );
+
+    //gEvent.SetUsed();
+
+    //mMTLoadObj.Init(&LoadObj,(LPVOID)this,true);
+    LoadObj ( this );
+
+    mSceneMgr->mSceneMachine.ChangeToScene ( gsGame );
+
+
+    return true;
+}
+
+void GGame::ShutDown()
+{
+
+}
+
+DWORD WINAPI LoadObj ( LPVOID pParam )
+{
+    CoInitialize ( NULL );
+
+    GGame *pGame = ( GGame* ) pParam;
+
+    if ( pGame == NULL )
+    {
+        return ERR_INT;
+    }
+
+    //设置投影矩阵
+    TheSceneMgr->SetProj();
+
+    //创建世界坐标系
+    GWorldCorrd* corrd = new GWorldCorrd();
+    corrd->SetNodeName ( "World Corrd" );
+    CXASSERT_RETURN_FALSE ( corrd->Create() );
+    TheSceneMgr->AddStaticObj ( corrd );
+
+//   MeshPara seaPara( 0, 80.0f, 0, 64, "..\\Data\\res\\water\\BlueShort\\A21C_000.jpg", NULL );
+//   pGame->mSea.CreateParam(seaPara);
+    //pGame->mSea.Create( NULL, ( void* )&seaPara );
+//   pGame->mSea.mLighting = true;
+//   pGame->mSea.m_bCanSelect = false;
+//   pGame->mSea.AddQuakePoint( 0, 0, 10.0f, 0.5f );
+
+//   GAnimMeshObj *pAnimMesh = new GAnimMeshObj;
+
+    //TheSceneMgr->mEye.InitTrack( &gAnimMesh[0] );
+
+    //gEvent.WaitForUse(-1);
+
+    TheSceneMgr->mSceneMachine.ChangeToScene ( gsGame );
+
+    return TRUE_INT;
+}
+
+void SendEditorEvent ( const EditorEvent& event )
+{
+    if ( TheEditor )
+    {
+        TheEditor->Notify ( event );
+    }
+}
+
+
+
+void GGame::GameRender ( float fPass )
+{
+
+    //GMeshManager::GetSingleton().Render( fPass );
+
+    mSceneMgr->mSceneRootNode->Draw();
+
+    //gAnimMesh[0].Render( fPass );
+
+    RenderEye ( fPass );
+
+    //mpUIMgr->Render( fPass );
+}
+
+void GGame::RenderEye ( float fPass )
+{
+    /**************************************************************************************
+
+    在屏幕上显示眼睛信息
+
+    **************************************************************************************/
+    //RECT rcEye = {5, 100, 150, 150};
+
+    //char strEye[128];
+
+    //ZeroMemory( strEye, sizeof( strEye ) );
+
+    ////sprintf(strEye,"眼睛位置--X：%.2f,Y:%.2f,Z:%.2f",mpSceneMgr->mText.mEye.mXPos.mvPos.x,mpSceneMgr->mText.mEye.mXPos.mvPos.y,mpSceneMgr->mText.mEye.mXPos.mvPos.z);
+
+    //sprintf( strEye, "摄像机速度：%.2f", mSceneMgr->mEye.mXPos.mfSpeedMove );
+
+    //mpUIMgr->mText.SetCurrentFontSize( fs12 );
+
+    //mpUIMgr->mText.DrawTextInRect( strEye, &rcEye, 0xffff0000, otUI, tpLeft );
+
+
+
+    //ZeroMemory( strEye, sizeof( strEye ) );
+
+    //if ( mpSelectAnim != NULL )
+    //{
+    //    sprintf( strEye, "铁牛位置--X：%.2f,Y:%.2f,Z:%.2f，速度：%.2f", mpSelectAnim->mXPos.mvPos.x, mpSelectAnim->mXPos.mvPos.y, mpSelectAnim->mXPos.mvPos.z, mpSelectAnim->mXPos.mfSpeedMove );
+
+    //    mpUIMgr->mText.SetCurrentFontSize( fs12 );
+
+    //    rcEye.top += 50;
+    //    rcEye.bottom += 50;
+    //    mpUIMgr->mText.DrawTextInRect( strEye, &rcEye, 0xffff0000, otUI, tpLeft );
+    //}
+
+
+    //if ( mpSelectObj != NULL )
+    //{
+    //    ZeroMemory( strEye, sizeof( strEye ) );
+    //    sprintf( strEye, "当前对象ID：%d", ( ( CGameStaticObj* )( mpSelectObj ) )->m_nObjID );
+    //    mpUIMgr->mText.SetCurrentFontSize( fs12 );
+
+    //    rcEye.top += 50;
+    //    rcEye.bottom += 50;
+    //    mpUIMgr->mText.DrawTextInRect( strEye, &rcEye, 0xffff0000, otUI, tpLeft );
+
+    //    ZeroMemory( strEye, sizeof( strEye ) );
+    //    sprintf( strEye, "当前模型ID：%d", ( ( CGameStaticObj* )( mpSelectObj ) )->LnMeshID );
+    //    mpUIMgr->mText.SetCurrentFontSize( fs12 );
+
+    //    rcEye.top += 50;
+    //    rcEye.bottom += 50;
+    //    mpUIMgr->mText.DrawTextInRect( strEye, &rcEye, 0xffff0000, otUI, tpLeft );
+    //}
+
+    //ZeroMemory( strEye, sizeof( strEye ) );
+    //sprintf( strEye, "当前渲染对象数目：%d", GMeshBuffer::GetSingleton().mRenderObjNum + 1 );
+    //mpUIMgr->mText.SetCurrentFontSize( fs12 );
+
+    //rcEye.top += 50;
+    //rcEye.bottom += 50;
+    //mpUIMgr->mText.DrawTextInRect( strEye, &rcEye, 0xffff0000, otUI, tpLeft );
+
+}
+
+void GGame::Finish()
+{
+    mFinished = true;
+}
+
+EEditorManager* GGame::GetEditor() const
+{
+    return mEditor;
+}
+
