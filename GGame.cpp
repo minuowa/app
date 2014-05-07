@@ -101,7 +101,8 @@ void GGame::GetInput()
             mpSelectObj = pMeshBaseObj;
             if ( mEditor )
             {
-                mEditor->SetObject ( pMeshBaseObj );
+				CXASSERT(0);
+                //mEditor->SetObject ( pMeshBaseObj );
             }
         }
 
@@ -109,7 +110,7 @@ void GGame::GetInput()
         {
             if ( mpSelectAnim != NULL )
             {
-                if ( !mpSelectAnim->mXPos.mbCanMoveStep )
+                if ( !mpSelectAnim->GetTrans().mbCanMoveStep )
                 {
                     mpSelectObj->GetInput ( fPass );
                 }
@@ -126,13 +127,13 @@ void GGame::GetInput()
             if ( INPUTSYSTEM.IsPressKey ( DIK_COMMA ) )
             {
                 //>增加速度
-                mpSelectObj->mXPos.mfSpeedMove += 0.8f;
+                mpSelectObj->GetTrans().mfSpeedMove += 0.8f;
             }
 
             if ( INPUTSYSTEM.IsPressKey ( DIK_PERIOD ) )
             {
                 //<减小速度
-                mpSelectObj->mXPos.mfSpeedMove -= 0.8f;
+                mpSelectObj->GetTrans().mfSpeedMove -= 0.8f;
             }
 
             if ( DI_BUTTONUP == INPUTSYSTEM.GetKeyAction ( DIK_DELETE ) )
@@ -149,12 +150,12 @@ void GGame::GetInput()
         {
             if ( mpSelectObj != NULL )
             {
-                mpSelectObj->mXPos.mvZoom += D3DXVECTOR3 ( 0.01f, 0.01f, 0.01f );
+                mpSelectObj->GetTrans().mvZoom += D3DXVECTOR3 ( 0.01f, 0.01f, 0.01f );
             }
 
             if ( mpSelectAnim != NULL )
             {
-                mpSelectAnim->mXPos.mfSpeedMove += 0.5f;
+                mpSelectAnim->GetTrans().mfSpeedMove += 0.5f;
             }
 
         }
@@ -163,12 +164,12 @@ void GGame::GetInput()
         {
             if ( mpSelectObj != NULL )
             {
-                mpSelectObj->mXPos.mvZoom -= D3DXVECTOR3 ( 0.01f, 0.01f, 0.01f );
+                mpSelectObj->GetTrans().mvZoom -= D3DXVECTOR3 ( 0.01f, 0.01f, 0.01f );
             }
 
             if ( mpSelectAnim != NULL )
             {
-                mpSelectAnim->mXPos.mfSpeedMove -= 0.5f;
+                mpSelectAnim->GetTrans().mfSpeedMove -= 0.5f;
             }
 
         }
@@ -409,13 +410,6 @@ DWORD WINAPI LoadObj ( LPVOID pParam )
     return TRUE_INT;
 }
 
-void SendEditorEvent ( const EditorEvent& event )
-{
-    if ( TheEditor )
-    {
-        TheEditor->Notify ( event );
-    }
-}
 
 
 

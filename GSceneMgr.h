@@ -46,7 +46,7 @@ public:
 
 };
 
-class GSceneMgr
+class GSceneMgr:public Actor
 {
 public:
     GSceneMgr ( void );
@@ -67,11 +67,11 @@ public:
     void SelectObjByName ( const char* name );
     GNode* GetNodeByName ( const char* name );
 public:
-	void EditorSelectObj(GNode* node);
+	void EditorSetObjectProperty(GNode* node);
+	void EditorUpdatePopupMenu(GNode* node);
     void InitNodeFactory();
     void InitComponentFactory();
-
-    void HandleEvent ( const EditorEvent& event );
+	virtual bool OnNotify(const EditorEvent& event);
 
     int mRenderObjNum;
 

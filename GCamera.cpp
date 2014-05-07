@@ -51,9 +51,9 @@ bool GCamera::Create()
 
 void GCamera::SetView()
 {
-    D3DXVECTOR3 vLookAtPos = mXPos.mTranslate + mXPos.mvDir * 100;
+    D3DXVECTOR3 vLookAtPos = GetTrans().mTranslate + GetTrans().mvDir * 100;
 
-    D3DXMatrixLookAtLH ( &matView, &mXPos.mTranslate, &vLookAtPos, &mXPos.mvUpon );
+    D3DXMatrixLookAtLH ( &matView, &GetTrans().mTranslate, &vLookAtPos, &GetTrans().mvUpon );
 
     if ( D9DEVICE != NULL )
     {
@@ -64,10 +64,10 @@ void GCamera::SetView()
 void GCamera::GetInput ( DWORD frameTimeMs )
 {
     if ( INPUTSYSTEM.IsPressKey ( DIK_ADD ) )
-        mXPos.mfSpeedMove += 0.03f * frameTimeMs;
+        GetTrans().mfSpeedMove += 0.03f * frameTimeMs;
 
     if ( INPUTSYSTEM.IsPressKey ( DIK_SUBTRACT ) )
-        mXPos.mfSpeedMove -= 0.03f * frameTimeMs;
+        GetTrans().mfSpeedMove -= 0.03f * frameTimeMs;
 
     POINT pt = INPUTSYSTEM.GetMousePoint();
 
@@ -100,13 +100,13 @@ void GCamera::GetInput ( DWORD frameTimeMs )
 
     }
 
-    mXPos.MoveStep ( vMove.z / 120 * 5.0f );
+    GetTrans().MoveStep ( vMove.z / 120 * 5.0f );
 
     if ( INPUTSYSTEM.IsPressingButton ( btRB ) )
     {
-        mXPos.TrunStepLeftRightWithUp ( -vMove.x / 800.0f );
+        GetTrans().TrunStepLeftRightWithUp ( -vMove.x / 800.0f );
 
-        mXPos.TrunWithRight ( -vMove.y / 800.0f );
+        GetTrans().TrunWithRight ( -vMove.y / 800.0f );
     }
 }
 
@@ -118,33 +118,33 @@ void GCamera::TraceMan(  )
         return;
     }
 
-    if ( !mpTransMan->mXPos.mbCanMoveStep )
+    if ( !mpTransMan->GetTrans().mbCanMoveStep )
     {
         return;
     }
 
     D3DXVECTOR3 Pos = ZEROVECTOR3;
 
-    Pos = mpTransMan->mXPos.mTranslate - mpTransMan->mXPos.mvDir * mfLenTransMan * 2;
+    Pos = mpTransMan->GetTrans().mTranslate - mpTransMan->GetTrans().mvDir * mfLenTransMan * 2;
 
-    Pos += mpTransMan->mXPos.mvUpon * mfLenTransMan;
+    Pos += mpTransMan->GetTrans().mvUpon * mfLenTransMan;
 
-    D3DXVECTOR3 vDist = Pos - mXPos.mTranslate;
+    D3DXVECTOR3 vDist = Pos - GetTrans().mTranslate;
 
 
-    D3DXVECTOR3 Dir = mpTransMan->mXPos.mTranslate - Pos;
+    D3DXVECTOR3 Dir = mpTransMan->GetTrans().mTranslate - Pos;
 
-    mXPos.mTranslate = Pos;
+    GetTrans().mTranslate = Pos;
 
-    mXPos.mvDir = Dir;
+    GetTrans().mvDir = Dir;
 
-    D3DXVec3Cross ( &mXPos.mvRight, & ( D3DXVECTOR3 ( 0, 1, 0 ) ), &mXPos.mvDir );
+    D3DXVec3Cross ( &GetTrans().mvRight, & ( D3DXVECTOR3 ( 0, 1, 0 ) ), &GetTrans().mvDir );
 
-    D3DXVec3Cross ( &mXPos.mvUpon, &mXPos.mvDir, &mXPos.mvRight );
+    D3DXVec3Cross ( &GetTrans().mvUpon, &GetTrans().mvDir, &GetTrans().mvRight );
 
-    D3DXVec3Normalize ( &mXPos.mvDir, &mXPos.mvDir );
-    D3DXVec3Normalize ( &mXPos.mvUpon, &mXPos.mvUpon );
-    D3DXVec3Normalize ( &mXPos.mvRight, &mXPos.mvRight );
+    D3DXVec3Normalize ( &GetTrans().mvDir, &GetTrans().mvDir );
+    D3DXVec3Normalize ( &GetTrans().mvUpon, &GetTrans().mvUpon );
+    D3DXVec3Normalize ( &GetTrans().mvRight, &GetTrans().mvRight );
 
 }
 

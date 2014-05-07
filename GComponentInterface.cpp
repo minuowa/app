@@ -1,10 +1,13 @@
 #include "GGameDemoHeader.h"
 #include "GComponentInterface.h"
 #include "GComponentTrans.h"
+#include "GFactory.h"
+#include "GComponentFactory.h"
 
 
 GComponentInterface::GComponentInterface ( void )
     : mComponentType ( eComponentType_Count )
+    , mCanDetach ( true )
 {
 }
 
@@ -13,15 +16,8 @@ GComponentInterface::~GComponentInterface ( void )
 {
 }
 
-eComponentType GComponentInterface::GetType()
-{
-    return mComponentType;
-}
 
-const char* GComponentInterface::GetComponentName()
-{
-    return CategoryName();
-}
+
 
 GComponentOwner::GComponentOwner()
 {
@@ -51,40 +47,51 @@ GComponentInterface* GComponentOwner::GetComponent ( eComponentType type ) const
 
 
 
-GComponentInterface* GComponentOwner::AttachComponent ( const char* name )
+
+GComponentInterface* GComponentOwner::AttachComponent( eComponentType type )
 {
-    assert ( GetComponent ( name ) == 0 );
-    for ( int i = 0; i < eComponentType_Count; ++i )
-    {
-        if ( mCompoents[i] )
-        {
-            if ( !strcmp ( mCompoents[i]->CategoryName(), name ) )
-            {
-                switch ( i )
-                {
-                case eComponentType_Trans:
-                    mCompoents[i] = new GComponentTrans;
-                    break;
-                }
-				if (mCompoents[i])
-					return mCompoents[i];
-            }
-        }
-    }
-    return 0;
+	assert ( type < eComponentType_Count );
+	if ( !GetComponent ( type ) )
+	{
+		GComponentFactory::ComponentCreator* creator = 
+			CXSingleton<GComponentFactory>::GetSingleton().GetCreator ( type );
+		CXASSERT_RESULT_FALSE ( creator );
+		mCompoents[type] = creator->mCreator();
+	}
+	return mCompoents[type];
 }
+
+GComponentInterface* GComponentOwner::AttachComponent( const char* name )
+{
+	GComponentInterface* component=GetComponent(name);
+	if (component)
+	{
+		return component;
+	}
+	GComponentFactory::ComponentCreator* creator = 
+		CXSingleton<GComponentFactory>::GetSingleton().GetCreator ( name );
+	CXASSERT_RESULT_FALSE ( creator );
+	CXASSERT_RESULT_FALSE ( !mCompoents[creator->mType] );
+	mCompoents[creator->mType] = creator->mCreator();
+	return mCompoents[creator->mType];
+}
+
 
 void GComponentOwner::DetachComponent ( const char* name )
 {
-    assert ( GetComponent ( name ) != 0 );
     for ( int i = 0; i < eComponentType_Count; ++i )
     {
         if ( mCompoents[i] )
         {
             if ( !strcmp ( mCompoents[i]->CategoryName(), name ) )
             {
-                CXSafeDelete ( mCompoents[i] );
+                if ( mCompoents[i]->CanDetach() )
+                {
+                    CXSafeDelete ( mCompoents[i] );
+                }
             }
         }
     }
 }
+
+

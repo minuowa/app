@@ -29,9 +29,7 @@ protected:
         //渲染所需参数
         GMeshBufferNode* mMeshBufferNode;
 		ID3DXMesh*	mpMeshForVector;
-		CharString mMeshFile;
 public:
-		CharString MeshFile() const { return mMeshFile; }
-		void MeshFile(CharString val) { mMeshFile = val; }
+
 		bool Create();
 };

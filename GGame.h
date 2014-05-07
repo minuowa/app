@@ -76,4 +76,3 @@ private:
 #define TheGame GGame::GetSingletonPtr() 
 #define TheSceneMgr GGame::GetSingleton().GetSceneMgr()
 #define TheEditor GGame::GetSingleton().GetEditor()
-void SendEditorEvent(const EditorEvent& event);

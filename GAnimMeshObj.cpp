@@ -4,7 +4,6 @@
 
 #include "Particles.h"
 
-GAnimMeshObj gAnimMesh[4];
 
 HRESULT AllocateName( LPCTSTR Name, LPTSTR *pNewName )
 {
@@ -224,7 +223,7 @@ void GAnimMeshObj::DrawMeshContainer( D3DXMESHCONTAINER *pMeshContainerBase, D3D
 
             if ( m_bHit )
             {
-                Toggle( mXPos.mbCanMoveStep );
+                Toggle( GetTrans().mbCanMoveStep );
             }
         }
     }
@@ -324,7 +323,7 @@ eObjAnimState GAnimMeshObj::SetState( eObjAnimState oas, bool bBack )
         return m_ObjAnimState;
     }
 
-    mXPos.mbBack = bBack;
+    GetTrans().mbBack = bBack;
 
     if ( mpAnimController == NULL )
     {
@@ -391,7 +390,7 @@ eObjAnimState GAnimMeshObj::SetState( eObjAnimState oas, bool bBack )
     {
         //设置动作速度
 
-        if ( mXPos.mbBack )
+        if ( GetTrans().mbBack )
         {
             mpAnimController->SetTrackSpeed( 0, -1 );
         }
@@ -460,7 +459,7 @@ int GAnimMeshObj::Render( float fPass )
 
         mpAmmo->Render();
 
-        if ( !mpAmmo->mXPos.mbAutoMove )
+        if ( !mpAmmo->GetTrans().mbAutoMove )
         {
             SAFED_ELETE( mpAmmo );
         }

@@ -325,7 +325,6 @@ bool GMeshBaseObj::Pick ( POINT pt )
 void GMeshBaseObj::RegisterAll()
 {
     __super::RegisterAll();
-    __RegisterProperty ( mMeshFile );
 }
 
 

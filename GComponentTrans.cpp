@@ -292,8 +292,6 @@ const char* GComponentTrans::GetComponentName()
 
 void GComponentTrans::RegisterAll()
 {
-    __super::RegisterAll();
-
     __RegisterProperty ( mTranslate.x );
     __RegisterProperty ( mTranslate.y );
     __RegisterProperty ( mTranslate.z );

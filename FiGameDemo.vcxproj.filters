@@ -37,6 +37,9 @@
     <ClCompile Include="GGameMap.cpp" />
     <ClCompile Include="GComponentInterface.cpp" />
     <ClCompile Include="GComponentTrans.cpp" />
+    <ClCompile Include="GComponentMesh.cpp" />
+    <ClCompile Include="GComponentFactory.cpp" />
+    <ClCompile Include="GComponentBox.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EyeCliper.h" />
@@ -77,5 +80,8 @@
     <ClInclude Include="GComponentInterface.h" />
     <ClInclude Include="GComponentTrans.h" />
     <ClInclude Include="GFactory.h" />
+    <ClInclude Include="GComponentMesh.h" />
+    <ClInclude Include="GComponentFactory.h" />
+    <ClInclude Include="GComponentBox.h" />
   </ItemGroup>
 </Project>

@@ -5,6 +5,7 @@
 #include "GBound.h"
 #include "GTimer.h"
 #include "GGame.h"
+#include "EEditorSheetManager.h"
 
 
 
@@ -30,9 +31,9 @@ void GNode::GetInput ( DWORD frameTimeMs )
         {
             m_bBehaviour = true;
 
-            mXPos.MoveStep ( frameTimeMs );
+            GetTrans().MoveStep ( frameTimeMs );
 
-            mXPos.mbBack = false;
+            GetTrans().mbBack = false;
 
             SetState ( oasMoving, false );
 
@@ -41,9 +42,9 @@ void GNode::GetInput ( DWORD frameTimeMs )
         {
             m_bBehaviour = true;
 
-            mXPos.MoveStep ( -frameTimeMs );
+            GetTrans().MoveStep ( -frameTimeMs );
 
-            mXPos.mbBack = true;
+            GetTrans().mbBack = true;
 
             SetState ( oasMoving, true );
         }
@@ -51,31 +52,31 @@ void GNode::GetInput ( DWORD frameTimeMs )
 
         if ( bTrunLeft )
         {
-            mXPos.TrunStepLeftRight ( -frameTimeMs / 3.0f );
+            GetTrans().TrunStepLeftRight ( -frameTimeMs / 3.0f );
         }
 
         else if ( bTrunRight )
         {
-            mXPos.TrunStepLeftRight ( frameTimeMs / 3.0f );
+            GetTrans().TrunStepLeftRight ( frameTimeMs / 3.0f );
         }
 
         if ( bJump )
         {
-            if ( !mXPos.mbJump )
+            if ( !GetTrans().mbJump )
             {
                 m_bBehaviour = true;
 
                 if ( bMoveBack )
                 {
-                    mXPos.mvSpeed = -mXPos.mvDir * mXPos.mfSpeedMove;
+                    GetTrans().mvSpeed = -GetTrans().mvDir * GetTrans().mfSpeedMove;
                 }
                 if ( bMoveFront )
                 {
-                    mXPos.mvSpeed = mXPos.mvDir * mXPos.mfSpeedMove;
+                    GetTrans().mvSpeed = GetTrans().mvDir * GetTrans().mfSpeedMove;
                 }
             }
 
-            mXPos.Jump();
+            GetTrans().Jump();
         }
 
         if ( INPUTSYSTEM.IsPressKey ( DIK_1 ) )
@@ -114,17 +115,17 @@ D3DXMATRIX GNode::GetWorldMatrix ( bool bForTrans )
 
     if ( mParent == NULL )
     {
-        _matWorld = mXPos.GetWorldMatrix ( bForTrans );
+        _matWorld = GetTrans().GetWorldMatrix ( bForTrans );
     }
     else
     {
         if ( mOpt == optByPosition )
         {
-            _matWorld = ( mXPos.GetWorldMatrix ( bForTrans ) ) * ( ( ( GNode* ) ( mParent ) )->mXPos.GetWorldMatrix ( true ) );
+            _matWorld = ( GetTrans().GetWorldMatrix ( bForTrans ) ) * ( ( ( GNode* ) ( mParent ) )->GetTrans().GetWorldMatrix ( true ) );
         }
         else
         {
-            _matWorld = ( mXPos.GetWorldMatrix ( false ) ) * ( ( ( GNode* ) ( mParent ) )->GetWorldMatrixByBone ( msParentName, false ) );
+            _matWorld = ( GetTrans().GetWorldMatrix ( false ) ) * ( ( ( GNode* ) ( mParent ) )->GetWorldMatrixByBone ( msParentName, false ) );
 
             //_matWorld=mXPos.GetScaleMatrix(false)*mXPos.GetTransLation(false)*
             //	(((CXWorldObj*)(mParent))->GetWorldMatrixByBone(msParentName,false))*mXPos.GetRotationMatrix(false);
@@ -187,6 +188,14 @@ GNode::GNode()
     m_ObjAnimState = oasNULL;									//对象当前状态
 
     D3DXMatrixIdentity ( &_matWorld );							//物体的世界矩阵
+
+	if (TheEditor)
+	{
+		AddWatcher(TheEditor);
+		AddWatcher(TheSceneMgr);
+	}
+
+    mComponentOwner.AttachComponent ( eComponentType_Trans )->SetCanDetach ( false );
 }
 
 GNode::~GNode()
@@ -293,321 +302,9 @@ IntersectInfo * GNode::GetBlockPoint()
 
 void GNode::Update(  )
 {
-    const bool bOriginAutoMove = mXPos.mbAutoMove;
-
-
-    eHitType htMap = htNull;
-
-    eHitType htObj = htNull;
-
-    IntersectInfo *pIntersectObj = NULL;
-
-    IntersectInfo *pIntersectMapInfo = NULL;		//与地图的碰撞点
-
-    IntersectInfo *pIntersectFinalHit = NULL;		//最终碰撞信息（可能是地图或者是物体）
-
-    if ( !m_bForceOnMap || !m_bBeSelected || !m_bCanSelect )
+    if ( mComponentOwner.GetComponent ( eComponentType_Trans ) )
     {
-        return;
-    }
-
-    if ( !m_bBehaviour )
-    {
-        return;
-    }
-
-    if ( bOriginAutoMove )
-    {
-        mXPos.Update();
-    }
-
-    const GComponentTrans cXPos = mXPos;
-    /*************************************************************************************************
-    //如果是在自动移动就在mXPos.Update(fPass)中更新Pos和LastPos：
-    //否则就在GetInput（fPass）中更新Pos和LastPos:
-
-    1、与地图碰撞
-    **************************************************************************************************/
-    if ( bOriginAutoMove )
-    {
-
-        GGameMap *pMap = ( GGameMap* ) mForceMap;
-
-        D3DXVECTOR4 vDir;
-        vDir.x = mXPos.mTranslate.x - mXPos.mvLastPos.x;
-        vDir.y = mXPos.mTranslate.y - mXPos.mvLastPos.y;
-        vDir.z = mXPos.mTranslate.z - mXPos.mvLastPos.z;
-        vDir.w = 0;
-
-        D3DXVECTOR4 vPos ( mXPos.mvLastPos.x, mXPos.mvLastPos.y, mXPos.mvLastPos.z, 1 );
-
-        bool bHit = pMap->CheckIntersect ( vPos, vDir, true );
-
-        if ( bHit )
-        {
-            float fHitDist = D3DXVec3Length ( & ( pMap->m_InsectInfo.vHitPos - mXPos.mvLastPos ) );
-
-            float fDist = D3DXVec3Length ( & ( mXPos.mTranslate - mXPos.mvLastPos ) );
-
-            if ( fHitDist > fDist )
-            {
-                htMap = htAutoMoveHitNoMap;
-            }
-            else
-            {
-                htMap = htAutoMoveHitMap;
-
-                //自动移动结束：
-                mXPos.mbJump = false;
-
-                mXPos.mbBack = false;
-
-                mXPos.mbAutoMove = false;
-
-                mXPos.mbCanMoveStep = true;
-
-                mXPos.mvSpeed = ZEROVECTOR3;
-
-                pIntersectMapInfo = & ( pMap->m_InsectInfo );
-            }
-        }
-    }
-    else
-    {
-
-        if ( m_pOnObj != NULL )
-        {
-            pIntersectObj = UpdateForForceOnObj ( m_pOnObj );
-        }
-
-        mXPos = cXPos;
-
-        pIntersectMapInfo = UpdateForForceOnMap();
-
-        if ( pIntersectObj != NULL )
-        {
-            if ( pIntersectMapInfo->vHitPos.y > pIntersectObj->vHitPos.y )
-            {
-                m_pOnObj = NULL;
-            }
-            else
-            {
-                mXPos.mTranslate = pIntersectObj->vHitPos + D3DXVECTOR3 ( 0, m_fForceHeight, 0 );
-
-                float fTmpAng = D3DXVec3Dot ( &pIntersectObj->vNormal, &D3DXVECTOR3 ( 0, 1, 0 ) );
-                if ( 0 < fTmpAng && fTmpAng < 0.5f )
-                {
-                    mXPos.mvDir = cXPos.mvDir;
-
-                    D3DXVECTOR3 vDirTmp = mXPos.mvUpon + pIntersectObj->vNormal;
-                    SetDir ( vDirTmp / 2.0f );
-                }
-                else if ( fTmpAng >= 0.5f )
-                {
-                    mXPos.mvDir = cXPos.mvDir;
-                    SetDir ( pIntersectObj->vNormal );
-                }
-                else
-                {
-                    mXPos.mTranslate = cXPos.mvLastPos;
-
-                    UpdateForForceOnObj ( m_pOnObj );
-                }
-            }
-
-            //}
-        }
-        else
-        {
-            m_pOnObj = NULL;
-
-            IntersectInfo *pIntersect = GetBlockPoint();
-
-            if ( pIntersect != NULL )
-            {
-                float fAng = D3DXVec3Dot ( &pIntersect->vNormal, &D3DXVECTOR3 ( 0, 1, 0 ) );
-
-                if ( fAng < 0.7 )
-                {
-                    mXPos.mTranslate = cXPos.mvLastPos;
-                    UpdateForForceOnMap();
-                }
-                else
-                {
-                    m_pOnObj = pIntersect->pObj;
-                    mXPos.mvDir = cXPos.mvDir;
-
-                    mXPos.mTranslate = pIntersect->vHitPos + D3DXVECTOR3 ( 0, m_fForceHeight, 0 );
-
-                    SetDir ( pIntersect->vNormal );
-                }
-
-
-            }
-
-        }
-
-        return;
-    }
-
-    /*************************************************************************************************
-    2、与地图中场景物体碰撞
-    **************************************************************************************************/
-    mXPos = cXPos;
-
-    IntersectInfo *pInterBlock = GetBlockPoint();
-    /*************************************************************************************************
-    3、判断碰撞点
-    **************************************************************************************************/
-
-    switch ( htMap )
-    {
-
-    case htAutoMoveHitNoMap:
-
-        if ( pInterBlock != NULL )
-        {
-            m_pOnObj = pInterBlock->pObj;
-
-            pIntersectFinalHit = pInterBlock;
-        }
-
-        break;
-
-    case htAutoMoveHitMap:
-
-        if ( pInterBlock != NULL )
-        {
-            if ( pIntersectMapInfo->vHitPos.y < pInterBlock->vHitPos.y )
-            {
-                m_pOnObj = pInterBlock->pObj;
-
-                pIntersectFinalHit = pInterBlock;
-            }
-            else
-            {
-                m_pOnObj = NULL;
-
-                pIntersectFinalHit = pIntersectMapInfo;
-            }
-        }
-        else
-        {
-            pIntersectFinalHit = pIntersectMapInfo;
-        }
-
-        break;
-
-    case htNotAutoMoveHitMap:
-
-        if ( pInterBlock != NULL )
-        {
-            D3DXVec3Normalize ( &pInterBlock->vNormal, &pInterBlock->vNormal );
-
-            if ( D3DXVec3Dot ( & ( pInterBlock->vNormal ), & ( D3DXVECTOR3 ( 0, 1, 0 ) ) ) < 0.5 )
-            {
-                //保持在原地，不能前进
-                mXPos.mTranslate = mXPos.mvLastPos;
-
-                UpdateForForceOnMap();
-            }
-            else
-            {
-                m_pOnObj = pInterBlock->pObj;
-
-                mXPos.mTranslate = pInterBlock->vHitPos;
-
-                UpdateForForceOnObj ( m_pOnObj );
-            }
-
-        }
-
-        break;
-
-    case htNotAutoMoveHitBelowMap:
-
-        if ( pInterBlock != NULL )
-        {
-            D3DXVec3Normalize ( &pInterBlock->vNormal, &pInterBlock->vNormal );
-
-            if ( D3DXVec3Dot ( & ( pInterBlock->vNormal ), & ( D3DXVECTOR3 ( 0, 1, 0 ) ) ) < 0.5 )
-            {
-                //保持在原地，不能前进
-                mXPos.mTranslate = mXPos.mvLastPos;
-
-                UpdateForForceOnObj ( m_pOnObj );
-            }
-            else
-            {
-                m_pOnObj = pInterBlock->pObj;
-
-                mXPos.mTranslate = pInterBlock->vHitPos;
-
-                UpdateForForceOnObj ( m_pOnObj );
-            }
-
-        }
-
-        break;
-
-    case htNotAutoMoveHitNoBelowMap:
-
-        //if (pInterBlock!=NULL)
-        //{
-        //	D3DXVec3Normalize(&pInterBlock->vNormal,&pInterBlock->vNormal);
-
-        //	if (D3DXVec3Dot(&(pInterBlock->vNormal),&(D3DXVECTOR3(0,1,0))) <0.5)
-        //	{
-        //		//保持在原地，不能前进
-        //		mXPos.mvPos=mXPos.mvLastPos;
-
-        //		UpdateForForceOnObj(m_pOnObj);
-        //	}
-        //	else
-        //	{
-        //		m_pOnObj=pInterBlock->pObj;
-
-        //		mXPos.mvPos=pInterBlock->vHitPos;
-
-        //		UpdateForForceOnObj(m_pOnObj);
-        //	}
-        //}
-        //else
-        //{
-        //	if (pIntersectMapInfo!=NULL)
-        //	{
-        //		SetDir(pIntersectMapInfo->vNormal);
-
-        //		mXPos.mvPos=pIntersectMapInfo->vHitPos;
-
-        //		mXPos.mvPos.y=pIntersectMapInfo->vHitPos.y+m_fForceHeight;
-        //	}
-
-        //}
-
-        break;
-
-
-    }
-
-    if ( pIntersectFinalHit != NULL )
-    {
-        mXPos.mTranslate = pIntersectFinalHit->vHitPos + D3DXVECTOR3 ( 0, m_fForceHeight, 0 );
-
-        m_bBehaviour = false;
-
-        //自动移动结束：
-        mXPos.mbJump = false;
-
-        mXPos.mbBack = false;
-
-        mXPos.mbAutoMove = false;
-
-        mXPos.mbCanMoveStep = true;
-
-        mXPos.mvSpeed = ZEROVECTOR3;
-
-        SetDir ( pIntersectFinalHit->vNormal );
+        UpdateTrans();
     }
     GNodeArr::iterator iBegin = mChildren.begin();
     GNodeArr::iterator iEnd = mChildren.end();
@@ -628,7 +325,7 @@ IntersectInfo * GNode::UpdateForForceOnMap()
         {
             GGameMap *pMap = ( GGameMap* ) mForceMap;
 
-            D3DXVECTOR4 vDir ( 0, -1, 0, 0 ), vPos ( mXPos.mTranslate.x, mXPos.mTranslate.y + 5000.0f, mXPos.mTranslate.z, 1 );
+            D3DXVECTOR4 vDir ( 0, -1, 0, 0 ), vPos ( GetTrans().mTranslate.x, GetTrans().mTranslate.y + 5000.0f, GetTrans().mTranslate.z, 1 );
 
             //向下的射线与地图碰撞，肯定能撞到
 
@@ -639,9 +336,9 @@ IntersectInfo * GNode::UpdateForForceOnMap()
 
                 SetDir ( pMap->m_InsectInfo.vNormal );
 
-                mXPos.mTranslate = pMap->m_InsectInfo.vHitPos;
+                GetTrans().mTranslate = pMap->m_InsectInfo.vHitPos;
 
-                mXPos.mTranslate.y = pMap->m_InsectInfo.vHitPos.y + m_fForceHeight;
+                GetTrans().mTranslate.y = pMap->m_InsectInfo.vHitPos.y + m_fForceHeight;
 
                 return & ( pMap->m_InsectInfo );
             }
@@ -657,12 +354,12 @@ void GNode::SetDir ( D3DXVECTOR3 vNormal )
 {
     if ( m_ForceType == ftUpAlways )
     {
-        mXPos.SetDirWithUpon ( D3DXVECTOR3 ( 0, 1, 0 ) );
+        GetTrans().SetDirWithUpon ( D3DXVECTOR3 ( 0, 1, 0 ) );
     }
 
     if ( m_ForceType == ftUpWithMap )
     {
-        mXPos.SetDirWithUpon ( vNormal );
+        GetTrans().SetDirWithUpon ( vNormal );
     }
 }
 
@@ -675,7 +372,7 @@ IntersectInfo * GNode::UpdateForForceOnObj ( void *pObj )
 
     GMeshBaseObj *lpObj = ( GMeshBaseObj * ) pObj;
 
-    D3DXVECTOR4 vDir ( 0, -1, 0, 0 ), vPos ( mXPos.mTranslate.x, mXPos.mTranslate.y + 20.0f, mXPos.mTranslate.z, 1 );
+    D3DXVECTOR4 vDir ( 0, -1, 0, 0 ), vPos ( GetTrans().mTranslate.x, GetTrans().mTranslate.y + 20.0f, GetTrans().mTranslate.z, 1 );
 
     //向下的射线与地图碰撞，肯定能撞到
 
@@ -691,9 +388,9 @@ IntersectInfo * GNode::UpdateForForceOnObj ( void *pObj )
         //{
         SetDir ( lpObj->m_InsectInfo.vNormal );
 
-        mXPos.mTranslate = lpObj->m_InsectInfo.vHitPos;
+        GetTrans().mTranslate = lpObj->m_InsectInfo.vHitPos;
 
-        mXPos.mTranslate.y = lpObj->m_InsectInfo.vHitPos.y + m_fForceHeight;
+        GetTrans().mTranslate.y = lpObj->m_InsectInfo.vHitPos.y + m_fForceHeight;
         //}
         //else
         //{
@@ -715,7 +412,7 @@ GNode* GNode::AddChild ( GNode* c )
     event.mType = eSceneToEditor_Add;
     event.mArgs.push_back ( c->GetEditName() );
     event.mArgs.push_back ( GetEditName() );
-    SendEditorEvent ( event );
+    Notify ( event );
 
     return c;
 }
@@ -795,7 +492,12 @@ int GNode::GetObjID() const
 void GNode::RegisterAll()
 {
     __super::RegisterAll();
-
+	for (int i=0;i<eComponentType_Count;++i)
+	{
+		GComponentInterface* component=mComponentOwner.GetComponent(eComponentType(i));
+		if (component)
+			RegisterProperty(component);
+	}
 }
 
 void GNode::LinkTo ( CXRapidxmlNode* parent )
@@ -822,7 +524,7 @@ void GNode::MakeXMLNode ( CXRapidxmlNode& node )
     node.name ( "Object" );
     CXRapidxmlAttr* attr = node.document()->allocate_attribute ( "Type", this->CategoryName() );
     node.append_attribute ( attr );
-	assert(0 && "undo work");
+    assert ( 0 && "undo work" );
     //CategoryPropertyMap::iterator it ( mOption.begin() );
     //CategoryPropertyMap::iterator iEnd ( mOption.end() );
     //StdString stemp;
@@ -862,4 +564,342 @@ GNode* GNode::GetNodeByName ( const char* name )
             return target;
     }
     return target;
+}
+
+GComponentTrans& GNode::GetTrans() const
+{
+    GComponentTrans* pTrans = ( GComponentTrans* ) mComponentOwner.GetComponent ( eComponentType_Trans );
+    assert ( pTrans );
+    return *pTrans;
+}
+
+void GNode::UpdateTrans()
+{
+    const bool bOriginAutoMove = GetTrans().mbAutoMove;
+
+
+    eHitType htMap = htNull;
+
+    eHitType htObj = htNull;
+
+    IntersectInfo *pIntersectObj = NULL;
+
+    IntersectInfo *pIntersectMapInfo = NULL;		//与地图的碰撞点
+
+    IntersectInfo *pIntersectFinalHit = NULL;		//最终碰撞信息（可能是地图或者是物体）
+
+    if ( !m_bForceOnMap || !m_bBeSelected || !m_bCanSelect )
+    {
+        return;
+    }
+
+    if ( !m_bBehaviour )
+    {
+        return;
+    }
+
+    if ( bOriginAutoMove )
+    {
+        GetTrans().Update();
+    }
+
+    const GComponentTrans cXPos = GetTrans();
+    /*************************************************************************************************
+    //如果是在自动移动就在mXPos.Update(fPass)中更新Pos和LastPos：
+    //否则就在GetInput（fPass）中更新Pos和LastPos:
+
+    1、与地图碰撞
+    **************************************************************************************************/
+    if ( bOriginAutoMove )
+    {
+
+        GGameMap *pMap = ( GGameMap* ) mForceMap;
+
+        D3DXVECTOR4 vDir;
+        vDir.x = GetTrans().mTranslate.x - GetTrans().mvLastPos.x;
+        vDir.y = GetTrans().mTranslate.y - GetTrans().mvLastPos.y;
+        vDir.z = GetTrans().mTranslate.z - GetTrans().mvLastPos.z;
+        vDir.w = 0;
+
+        D3DXVECTOR4 vPos ( GetTrans().mvLastPos.x, GetTrans().mvLastPos.y, GetTrans().mvLastPos.z, 1 );
+
+        bool bHit = pMap->CheckIntersect ( vPos, vDir, true );
+
+        if ( bHit )
+        {
+            float fHitDist = D3DXVec3Length ( & ( pMap->m_InsectInfo.vHitPos - GetTrans().mvLastPos ) );
+
+            float fDist = D3DXVec3Length ( & ( GetTrans().mTranslate - GetTrans().mvLastPos ) );
+
+            if ( fHitDist > fDist )
+            {
+                htMap = htAutoMoveHitNoMap;
+            }
+            else
+            {
+                htMap = htAutoMoveHitMap;
+
+                //自动移动结束：
+                GetTrans().mbJump = false;
+
+                GetTrans().mbBack = false;
+
+                GetTrans().mbAutoMove = false;
+
+                GetTrans().mbCanMoveStep = true;
+
+                GetTrans().mvSpeed = ZEROVECTOR3;
+
+                pIntersectMapInfo = & ( pMap->m_InsectInfo );
+            }
+        }
+    }
+    else
+    {
+
+        if ( m_pOnObj != NULL )
+        {
+            pIntersectObj = UpdateForForceOnObj ( m_pOnObj );
+        }
+
+        GetTrans() = cXPos;
+
+        pIntersectMapInfo = UpdateForForceOnMap();
+
+        if ( pIntersectObj != NULL )
+        {
+            if ( pIntersectMapInfo->vHitPos.y > pIntersectObj->vHitPos.y )
+            {
+                m_pOnObj = NULL;
+            }
+            else
+            {
+                GetTrans().mTranslate = pIntersectObj->vHitPos + D3DXVECTOR3 ( 0, m_fForceHeight, 0 );
+
+                float fTmpAng = D3DXVec3Dot ( &pIntersectObj->vNormal, &D3DXVECTOR3 ( 0, 1, 0 ) );
+                if ( 0 < fTmpAng && fTmpAng < 0.5f )
+                {
+                    GetTrans().mvDir = cXPos.mvDir;
+
+                    D3DXVECTOR3 vDirTmp = GetTrans().mvUpon + pIntersectObj->vNormal;
+                    SetDir ( vDirTmp / 2.0f );
+                }
+                else if ( fTmpAng >= 0.5f )
+                {
+                    GetTrans().mvDir = cXPos.mvDir;
+                    SetDir ( pIntersectObj->vNormal );
+                }
+                else
+                {
+                    GetTrans().mTranslate = cXPos.mvLastPos;
+
+                    UpdateForForceOnObj ( m_pOnObj );
+                }
+            }
+
+            //}
+        }
+        else
+        {
+            m_pOnObj = NULL;
+
+            IntersectInfo *pIntersect = GetBlockPoint();
+
+            if ( pIntersect != NULL )
+            {
+                float fAng = D3DXVec3Dot ( &pIntersect->vNormal, &D3DXVECTOR3 ( 0, 1, 0 ) );
+
+                if ( fAng < 0.7 )
+                {
+                    GetTrans().mTranslate = cXPos.mvLastPos;
+                    UpdateForForceOnMap();
+                }
+                else
+                {
+                    m_pOnObj = pIntersect->pObj;
+                    GetTrans().mvDir = cXPos.mvDir;
+
+                    GetTrans().mTranslate = pIntersect->vHitPos + D3DXVECTOR3 ( 0, m_fForceHeight, 0 );
+
+                    SetDir ( pIntersect->vNormal );
+                }
+
+
+            }
+
+        }
+
+        return;
+    }
+
+    /*************************************************************************************************
+    2、与地图中场景物体碰撞
+    **************************************************************************************************/
+    GetTrans() = cXPos;
+
+    IntersectInfo *pInterBlock = GetBlockPoint();
+    /*************************************************************************************************
+    3、判断碰撞点
+    **************************************************************************************************/
+
+    switch ( htMap )
+    {
+
+    case htAutoMoveHitNoMap:
+
+        if ( pInterBlock != NULL )
+        {
+            m_pOnObj = pInterBlock->pObj;
+
+            pIntersectFinalHit = pInterBlock;
+        }
+
+        break;
+
+    case htAutoMoveHitMap:
+
+        if ( pInterBlock != NULL )
+        {
+            if ( pIntersectMapInfo->vHitPos.y < pInterBlock->vHitPos.y )
+            {
+                m_pOnObj = pInterBlock->pObj;
+
+                pIntersectFinalHit = pInterBlock;
+            }
+            else
+            {
+                m_pOnObj = NULL;
+
+                pIntersectFinalHit = pIntersectMapInfo;
+            }
+        }
+        else
+        {
+            pIntersectFinalHit = pIntersectMapInfo;
+        }
+
+        break;
+
+    case htNotAutoMoveHitMap:
+
+        if ( pInterBlock != NULL )
+        {
+            D3DXVec3Normalize ( &pInterBlock->vNormal, &pInterBlock->vNormal );
+
+            if ( D3DXVec3Dot ( & ( pInterBlock->vNormal ), & ( D3DXVECTOR3 ( 0, 1, 0 ) ) ) < 0.5 )
+            {
+                //保持在原地，不能前进
+                GetTrans().mTranslate = GetTrans().mvLastPos;
+
+                UpdateForForceOnMap();
+            }
+            else
+            {
+                m_pOnObj = pInterBlock->pObj;
+
+                GetTrans().mTranslate = pInterBlock->vHitPos;
+
+                UpdateForForceOnObj ( m_pOnObj );
+            }
+
+        }
+
+        break;
+
+    case htNotAutoMoveHitBelowMap:
+
+        if ( pInterBlock != NULL )
+        {
+            D3DXVec3Normalize ( &pInterBlock->vNormal, &pInterBlock->vNormal );
+
+            if ( D3DXVec3Dot ( & ( pInterBlock->vNormal ), & ( D3DXVECTOR3 ( 0, 1, 0 ) ) ) < 0.5 )
+            {
+                //保持在原地，不能前进
+                GetTrans().mTranslate = GetTrans().mvLastPos;
+
+                UpdateForForceOnObj ( m_pOnObj );
+            }
+            else
+            {
+                m_pOnObj = pInterBlock->pObj;
+
+                GetTrans().mTranslate = pInterBlock->vHitPos;
+
+                UpdateForForceOnObj ( m_pOnObj );
+            }
+
+        }
+
+        break;
+
+    case htNotAutoMoveHitNoBelowMap:
+
+        //if (pInterBlock!=NULL)
+        //{
+        //	D3DXVec3Normalize(&pInterBlock->vNormal,&pInterBlock->vNormal);
+
+        //	if (D3DXVec3Dot(&(pInterBlock->vNormal),&(D3DXVECTOR3(0,1,0))) <0.5)
+        //	{
+        //		//保持在原地，不能前进
+        //		mXPos.mvPos=mXPos.mvLastPos;
+
+        //		UpdateForForceOnObj(m_pOnObj);
+        //	}
+        //	else
+        //	{
+        //		m_pOnObj=pInterBlock->pObj;
+
+        //		mXPos.mvPos=pInterBlock->vHitPos;
+
+        //		UpdateForForceOnObj(m_pOnObj);
+        //	}
+        //}
+        //else
+        //{
+        //	if (pIntersectMapInfo!=NULL)
+        //	{
+        //		SetDir(pIntersectMapInfo->vNormal);
+
+        //		mXPos.mvPos=pIntersectMapInfo->vHitPos;
+
+        //		mXPos.mvPos.y=pIntersectMapInfo->vHitPos.y+m_fForceHeight;
+        //	}
+
+        //}
+
+        break;
+
+
+    }
+
+    if ( pIntersectFinalHit != NULL )
+    {
+        GetTrans().mTranslate = pIntersectFinalHit->vHitPos + D3DXVECTOR3 ( 0, m_fForceHeight, 0 );
+
+        m_bBehaviour = false;
+
+        //自动移动结束：
+        GetTrans().mbJump = false;
+
+        GetTrans().mbBack = false;
+
+        GetTrans().mbAutoMove = false;
+
+        GetTrans().mbCanMoveStep = true;
+
+        GetTrans().mvSpeed = ZEROVECTOR3;
+
+        SetDir ( pIntersectFinalHit->vNormal );
+    }
+}
+
+void GNode::OnComponentChange()
+{
+	UnRegisterAll();
+	RegisterAll();
+
+	EditorEvent event;
+	event.mType = eEditorToSecne_Select;
+	event.mArgs.push_back ( mNodeName );
+	Notify(event);
 }

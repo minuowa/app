@@ -3,7 +3,7 @@
 
 GAmmo::GAmmo ( void )
 {
-    mXPos.mfSpeedMove = 150;
+    GetTrans().mfSpeedMove = 150;
 
 }
 
@@ -15,8 +15,8 @@ GAmmo::~GAmmo ( void )
 void GAmmo::Shoot()
 {
     m_bForceOnMap = true;
-    mXPos.mbAutoMove = true;
-    mXPos.mvSpeed = mXPos.mfSpeedMove * mXPos.mvDir;
+    GetTrans().mbAutoMove = true;
+    GetTrans().mvSpeed = GetTrans().mfSpeedMove * GetTrans().mvDir;
 }
 
 
@@ -31,21 +31,21 @@ bool GAmmo::Create()
 void GAmmo::SetShooter ( GNode *pShooter )
 {
 
-    mXPos.mTranslate = pShooter->mXPos.mTranslate;
+    GetTrans().mTranslate = pShooter->GetTrans().mTranslate;
 
-    mXPos.mTranslate.y += 50.0f;
-    mXPos.mTranslate.z += 5.0f;
+    GetTrans().mTranslate.y += 50.0f;
+    GetTrans().mTranslate.z += 5.0f;
 
-    mXPos.mvDir = pShooter->mXPos.mvDir;
-    mXPos.mvDir.y += 0.01f;
+    GetTrans().mvDir = pShooter->GetTrans().mvDir;
+    GetTrans().mvDir.y += 0.01f;
 
-    D3DXVec3Normalize ( &mXPos.mvDir, &mXPos.mvDir );
+    D3DXVec3Normalize ( &GetTrans().mvDir, &GetTrans().mvDir );
 
-    mXPos.mvRight = pShooter->mXPos.mvRight;
+    GetTrans().mvRight = pShooter->GetTrans().mvRight;
 
-    D3DXVec3Cross ( &mXPos.mvUpon, &mXPos.mvDir, &mXPos.mvRight );
+    D3DXVec3Cross ( &GetTrans().mvUpon, &GetTrans().mvDir, &GetTrans().mvRight );
 
-    D3DXVec3Normalize ( &mXPos.mvUpon, &mXPos.mvUpon );
+    D3DXVec3Normalize ( &GetTrans().mvUpon, &GetTrans().mvUpon );
 
     mParent = NULL;
 }

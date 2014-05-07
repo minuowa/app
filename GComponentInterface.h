@@ -1,5 +1,5 @@
 #pragma once
-#include "EObject.h"
+#include "GObject.h"
 #include "GFactory.h"
 enum eComponentType
 {
@@ -8,25 +8,42 @@ enum eComponentType
     eComponentType_Ani,
     eComponentType_Effect,
     eComponentType_Script,
+	eComponentType_Box,
     eComponentType_Particles,
     eComponentType_Count,
 };
 class GComponentInterface :
-    public MObject
+    public GObject
 {
 public:
     GComponentInterface ( void );
     virtual ~GComponentInterface ( void );
 protected:
     eComponentType	mComponentType;
+    bool	mCanDetach;
 public:
-    eComponentType GetType();
-    const char* GetComponentName();
+	inline eComponentType GetType()
+	{
+		return mComponentType;
+	}
+    inline const char* GetComponentName()
+	{
+		return CategoryName();
+	}
+    inline bool CanDetach() const
+    {
+        return mCanDetach;
+    }
+    inline void SetCanDetach ( bool can )
+    {
+        mCanDetach = can;
+    }
 };
 template<eComponentType TYPE>
 class GComponentBase: public GComponentInterface
 {
 public:
+	enum{ComponentType=TYPE,};
     GComponentBase()
     {
         mComponentType = TYPE;
@@ -39,15 +56,18 @@ public:
     GComponentOwner();
     GComponentInterface* GetComponent ( const char* name ) const;
     GComponentInterface* GetComponent ( eComponentType type ) const;
-	GComponentInterface* AttachComponent ( const char* name );
-    void DetachComponent ( const char* name );
-    GComponentInterface* AttachComponent ( eComponentType type );
+
+	GComponentInterface* AttachComponent ( eComponentType type);
+	GComponentInterface* AttachComponent ( const char* name);
+
+	void DetachComponent ( const char* name );
+	void DetachComponent ( eComponentType type );
 protected:
 
     GComponentInterface* mCompoents[eComponentType_Count];
 };
 
-typedef CXSingleton<GFactory<GComponentInterface>> GComponentFactory;
+
 
 #define DeclareComponentCreator(className) \
 	 public:\

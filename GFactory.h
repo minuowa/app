@@ -7,7 +7,9 @@ public:
     typedef CXMap<CharString, ObjCrator> ObjCreatorMap;
 
     //GFactory ( void );
-    //~GFactory ( void );
+	virtual   ~GFactory ( void )
+	{
+	}
     T*	Create ( const char* typeName )
     {
         ObjCrator creator = GetCreator ( typeName );

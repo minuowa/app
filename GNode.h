@@ -3,11 +3,11 @@
 #include "GComponentTrans.h"
 #include "GD9Device.h"
 #include "GD8Input.h"
-#include "EObject.h"
+#include "GObject.h"
 #include "GFactory.h"
 
 //有坐标属性的物体
-class GNode: public MObject
+class GNode: public GObject
 {
     DeclareEditorType ( GNode );
 public:
@@ -47,6 +47,9 @@ public:
 
     void SetDir ( D3DXVECTOR3 vNormal );
 
+    GComponentTrans& GetTrans() const;
+    void UpdateTrans();
+	void OnComponentChange();
 protected:
     virtual void BeginRender();
     virtual void EndRender();
@@ -58,8 +61,6 @@ public:
     CXDynaArray<GNode*> mChildren;
 
     GComponentOwner	mComponentOwner;
-
-    GComponentTrans mXPos;
 
     //eHitType m_HitType;					//是否撞到物体
 
@@ -132,13 +133,26 @@ public:
     {
         return mNodeName.c_str();
     }
-    inline GComponentInterface* AttachComponent ( const char* name )
+	inline GComponentInterface* AttachComponent ( eComponentType type )
+	{
+		GComponentInterface* component=mComponentOwner.AttachComponent ( type );
+		OnComponentChange();
+		return component;
+	}
+	inline GComponentInterface* AttachComponent ( const char* name )
     {
-        return mComponentOwner.AttachComponent ( name );
+		GComponentInterface* component=mComponentOwner.AttachComponent ( name );
+		OnComponentChange();
+		return component;
     }
     inline void DetachComponent ( const char* name )
     {
         mComponentOwner.DetachComponent ( name );
+		OnComponentChange();
+    }
+    inline GComponentOwner& GetComponentOwner()
+    {
+        return mComponentOwner;
     }
 };
 
