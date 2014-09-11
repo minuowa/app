@@ -22,7 +22,7 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -55,7 +55,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\CXBase;..\PropertySheet\;..\qt\include;..\qt\include\QtCore;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\CXBase;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;DIRECTINPUT_VERSION 0X80;_LIB;FiGameDemo_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -70,7 +70,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>EditorSheet.lib;QtCored.lib;QtGuid.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>CXBase.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\Debug\;..\qt\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
@@ -113,12 +113,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="GAllocateHierarchy.cpp" />
+    <ClCompile Include="GAnimationResource.cpp" />
     <ClCompile Include="GComponentBox.cpp" />
     <ClCompile Include="GComponentFactory.cpp" />
     <ClCompile Include="GComponentInterface.cpp" />
     <ClCompile Include="GComponentMesh.cpp" />
     <ClCompile Include="GD9Device.cpp" />
     <ClCompile Include="GMeshData.cpp" />
+    <ClCompile Include="GObject.cpp" />
     <ClCompile Include="GRenderObject.cpp" />
     <ClCompile Include="GAmmo.cpp" />
     <ClCompile Include="GAnimMeshObj.cpp" />
@@ -157,7 +160,9 @@
     <CustomBuildStep Include="luawraper\LuaContext.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </CustomBuildStep>
+    <ClInclude Include="GAllocateHierarchy.h" />
     <ClInclude Include="GAmmo.h" />
+    <ClInclude Include="GAnimationResource.h" />
     <ClInclude Include="GAnimMeshObj.h" />
     <ClInclude Include="GBound.h" />
     <ClInclude Include="GComponentBox.h" />
@@ -166,6 +171,8 @@
     <ClInclude Include="GComponentMesh.h" />
     <ClInclude Include="GFactory.h" />
     <ClInclude Include="GMeshData.h" />
+    <ClInclude Include="GObject.h" />
+    <ClInclude Include="GResourceManager.h" />
     <ClInclude Include="GWorldCorrd.h" />
     <ClInclude Include="GD8Input.h" />
     <ClInclude Include="GD9Device.h" />

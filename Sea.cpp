@@ -1,6 +1,7 @@
 #include "GGameDemoHeader.h"
 #include "Sea.h"
 #include "GMeshBuffer.h"
+#include "GD9Device.h"
 
 CSea::CSea( void )
 	:mCreateParam(0)

@@ -8,7 +8,6 @@
 #include "GCamera.h"
 #include "GD9Device.h"
 #include "XMeshObj.h"
-#include "EditorSheetBase.h"
 #include "GFactory.h"
 
 #define SCENENUM 5		//³¡¾°ÊýÁ¿	
@@ -46,7 +45,7 @@ public:
 
 };
 
-class GSceneMgr:public Actor
+class GSceneMgr
 {
 public:
     GSceneMgr ( void );
@@ -54,7 +53,7 @@ public:
 public:
 
     void CullObj();
-    bool Init ( GD9Device *DVC );
+	bool Init ( const GD9Device& DVC );
     void* GetInput ( float fPass );
     void SetView();
     void SetProj();
@@ -71,7 +70,7 @@ public:
 	void EditorUpdatePopupMenu(GNode* node);
     void InitNodeFactory();
     void InitComponentFactory();
-	virtual bool OnNotify(const EditorEvent& event);
+	//virtual bool OnNotify(const EditorEvent& event);
 
     int mRenderObjNum;
 

@@ -2,11 +2,10 @@
 #include "GD9Device.h"
 #include <assert.h>
 
-CXImpleteSingleton(GD9Device);
-
 GD9Device::GD9Device(void)
 {
 	mD9Device=NULL;
+	mD3D9=0;
 }
 
 GD9Device::~GD9Device(void)
@@ -16,98 +15,14 @@ GD9Device::~GD9Device(void)
 
 bool GD9Device::Init( HWND hWnd )
 {
-	//测试用
-	HRESULT hr=0;
-
-	//默认显卡的显示模式
-	D3DDISPLAYMODE d9DisplayMode;
-
-	//设备性能参数
-
-	//渲染区域
-	RECT rcClient;
-
-	//多重采样支持度
-	DWORD dwMultiSampleQulity=0;
-
-	//定点处理方式
-	DWORD dwBehavior;
-
 	mhWnd=hWnd;
-
-	IDirect3D9 *pD3D9=NULL;
-	pD3D9=Direct3DCreate9(D3D_SDK_VERSION);
-
-	if (pD3D9==NULL)
-	{
-		return false;
-	}
-
-	//检测设备显示模式
-	pD3D9->GetAdapterDisplayMode(D3DADAPTER_DEFAULT,&d9DisplayMode);
-
-	//D3DVS_VERSION()
-	//检测设备性能，是否支持硬件定点处理和光照
-	//如果设备支持顶点转换和光照，就硬件处理，否则用软件模拟
-	pD3D9->GetDeviceCaps(D3DADAPTER_DEFAULT,D3DDEVTYPE_HAL,&mCaps);
-
-	if(mCaps.DevCaps & D3DDEVCAPS_HWTRANSFORMANDLIGHT)
-		dwBehavior=D3DCREATE_HARDWARE_VERTEXPROCESSING;
-	else
-		dwBehavior=D3DCREATE_SOFTWARE_VERTEXPROCESSING;
-
-	//检测多重采样支持度
-	pD3D9->CheckDeviceMultiSampleType(
-		D3DADAPTER_DEFAULT,D3DDEVTYPE_HAL,d9DisplayMode.Format,
-		TRUE,D3DMULTISAMPLE_8_SAMPLES,&dwMultiSampleQulity
-		);
-
 	//后台缓冲区和客户区大小一致，避免图形失真
-
+	RECT rcClient;
 	GetClientRect(hWnd,&rcClient);
 	mHeight=rcClient.bottom-rcClient.top;
 	mWidth=rcClient.right-rcClient.left;
 
-	D3DPRESENT_PARAMETERS d3dp;
-	ZeroMemory(&d3dp,sizeof(D3DPRESENT_PARAMETERS));
-
-	d3dp.AutoDepthStencilFormat=D3DFMT_D24S8;	//深度缓存24位，模板缓存8位
-	d3dp.BackBufferCount=1;						//后台缓冲区一个
-	d3dp.BackBufferFormat=d9DisplayMode.Format;	//后台缓冲区像素格式，应该和前台相同的
-	d3dp.BackBufferHeight=mHeight;				//后台缓冲区高度
-	d3dp.BackBufferWidth=mWidth;				//后台缓冲区宽度
-	d3dp.EnableAutoDepthStencil=TRUE;			//开启模板缓存和深度缓存
-	d3dp.Flags=0;								//默认为0
-	d3dp.FullScreen_RefreshRateInHz=0;			//窗口显示时必须设置为0
-	d3dp.hDeviceWindow=mhWnd;
-	d3dp.MultiSampleQuality=dwMultiSampleQulity-1;
-	d3dp.MultiSampleType=D3DMULTISAMPLE_8_SAMPLES;		//SwapEffect不为D3DSWAPEFFECT_DISCARD时，该参数必须设置为D3DMULTISAMPLE_NONE
-	d3dp.PresentationInterval=D3DPRESENT_INTERVAL_IMMEDIATE;
-	d3dp.SwapEffect=D3DSWAPEFFECT_DISCARD;
-	//d3dp.SwapEffect=D3DSWAPEFFECT_COPY;
-	d3dp.Windowed=TRUE;
-
-	
-	hr=pD3D9->CreateDevice(
-		D3DADAPTER_DEFAULT,
-		//D3DDEVTYPE_REF,
-		D3DDEVTYPE_HAL,
-		mhWnd,
-		dwBehavior|D3DCREATE_MULTITHREADED,
-		&d3dp,
-		&mD9Device
-		);
-
-	DWORD dwi=GetLastError();
-	
-	if (FAILED(hr))
-	{
-		return false;
-	}
-
-	SetLight();
-
-	return true;
+	return ResetDevice(mWidth,mHeight);
 }
 
 bool GD9Device::BeginRender()
@@ -419,6 +334,109 @@ int GD9Device::GetScreenWidth() const
 int GD9Device::GetScreenHeight() const
 {
 	return mHeight;
+}
+
+void GD9Device::OnDeviceLost()
+{
+
+}
+
+void GD9Device::OnResize( int w,int h )
+{
+	ResetDevice(w,h);
+}
+
+bool GD9Device::ResetDevice( int w,int h )
+{
+	//测试用
+	HRESULT hr=0;
+
+	//默认显卡的显示模式
+	D3DDISPLAYMODE d9DisplayMode;
+
+	//设备性能参数
+
+	//渲染区域
+	RECT rcClient;
+
+	//多重采样支持度
+	DWORD dwMultiSampleQulity=0;
+
+	//定点处理方式
+	DWORD dwBehavior;
+
+	if (!mD3D9)
+	{
+		mD3D9=Direct3DCreate9(D3D_SDK_VERSION);
+
+		CXASSERT_RETURN_FALSE(mD3D9);
+	}
+
+	//检测设备显示模式
+	mD3D9->GetAdapterDisplayMode(D3DADAPTER_DEFAULT,&d9DisplayMode);
+
+	//D3DVS_VERSION()
+	//检测设备性能，是否支持硬件定点处理和光照
+	//如果设备支持顶点转换和光照，就硬件处理，否则用软件模拟
+	mD3D9->GetDeviceCaps(D3DADAPTER_DEFAULT,D3DDEVTYPE_HAL,&mCaps);
+
+	if(mCaps.DevCaps & D3DDEVCAPS_HWTRANSFORMANDLIGHT)
+		dwBehavior=D3DCREATE_HARDWARE_VERTEXPROCESSING;
+	else
+		dwBehavior=D3DCREATE_SOFTWARE_VERTEXPROCESSING;
+
+	//检测多重采样支持度
+	mD3D9->CheckDeviceMultiSampleType(
+		D3DADAPTER_DEFAULT,D3DDEVTYPE_HAL,d9DisplayMode.Format,
+		TRUE,D3DMULTISAMPLE_8_SAMPLES,&dwMultiSampleQulity
+		);
+	mWidth=w;
+	mHeight=h;
+	D3DPRESENT_PARAMETERS d3dp;
+	ZeroMemory(&d3dp,sizeof(D3DPRESENT_PARAMETERS));
+
+	d3dp.AutoDepthStencilFormat=D3DFMT_D24S8;	//深度缓存24位，模板缓存8位
+	d3dp.BackBufferCount=1;						//后台缓冲区一个
+	d3dp.BackBufferFormat=d9DisplayMode.Format;	//后台缓冲区像素格式，应该和前台相同的
+	d3dp.BackBufferHeight=mHeight;				//后台缓冲区高度
+	d3dp.BackBufferWidth=mWidth;				//后台缓冲区宽度
+	d3dp.EnableAutoDepthStencil=TRUE;			//开启模板缓存和深度缓存
+	d3dp.Flags=0;								//默认为0
+	d3dp.FullScreen_RefreshRateInHz=0;			//窗口显示时必须设置为0
+	d3dp.hDeviceWindow=mhWnd;
+	d3dp.MultiSampleQuality=dwMultiSampleQulity-1;
+	d3dp.MultiSampleType=D3DMULTISAMPLE_8_SAMPLES;		//SwapEffect不为D3DSWAPEFFECT_DISCARD时，该参数必须设置为D3DMULTISAMPLE_NONE
+	d3dp.PresentationInterval=D3DPRESENT_INTERVAL_IMMEDIATE;
+	d3dp.SwapEffect=D3DSWAPEFFECT_DISCARD;
+	//d3dp.SwapEffect=D3DSWAPEFFECT_COPY;
+	d3dp.Windowed=TRUE;
+
+	if (mD9Device)
+	{
+		mD9Device->Reset(&d3dp);
+	}
+	else
+	{
+		hr=mD3D9->CreateDevice(
+			D3DADAPTER_DEFAULT,
+			//D3DDEVTYPE_REF,
+			D3DDEVTYPE_HAL,
+			mhWnd,
+			dwBehavior|D3DCREATE_MULTITHREADED,
+			&d3dp,
+			&mD9Device
+			);
+
+		DWORD dwi=GetLastError();
+
+		if (FAILED(hr))
+		{
+			return false;
+		}
+		SetLight();
+	}
+
+	return true;
 }
 
 

@@ -3,43 +3,18 @@
 #include "XCursor.h"
 
 #include "Particles.h"
+#include "GAnimationResource.h"
+#include "GComponentMesh.h"
+#include "GResourceManager.h"
+#include "XSingleton.h"
+#include "GTimer.h"
+#include "GD8Input.h"
 
-
-HRESULT AllocateName( LPCTSTR Name, LPTSTR *pNewName )
+GAnimMeshObj::GAnimMeshObj ( void )
+    : mResource ( 0 )
+    , mCloneAnimationController ( 0 )
 {
-    //Name为空值，返回错误
-    if ( Name == NULL )
-    {
-        *pNewName = NULL;
-
-
-        return S_FALSE;
-    }
-
-    int nLen = lstrlen( Name ) + 1;
-
-    *pNewName = new TCHAR[nLen];
-
-    //内存不足，返回错误
-    if ( *pNewName == NULL )
-    {
-        return E_OUTOFMEMORY;
-    }
-
-    memcpy( *pNewName, Name, nLen * sizeof( TCHAR ) );
-
-    return S_OK;
-
-}
-
-
-GAnimMeshObj::GAnimMeshObj( void )
-{
-    ZeroMemory( m_sXFileName, sizeof( m_sXFileName ) );
-
-    ZeroMemory( m_sTextureName, sizeof( m_sTextureName ) );
-
-    m_nAnimMeshID = 0;
+    ZeroMemory ( m_sTextureName, sizeof ( m_sTextureName ) );
 
     mpAmmo = NULL;
 
@@ -50,118 +25,30 @@ GAnimMeshObj::GAnimMeshObj( void )
     mpAnimSet = NULL;
 
     mpFace = NULL;
-
-    mpFrameRoot = NULL;
-
-    mpAnimController = NULL;
+    AttachComponent ( eComponentType_Mesh, false );
 }
 
-GAnimMeshObj::~GAnimMeshObj( void )
+GAnimMeshObj::~GAnimMeshObj ( void )
 {
 
 }
 
 
 
-HRESULT GAnimMeshObj::SetupBoneMatrixPointers( LPD3DXFRAME pFrame )
-{
-    HRESULT hr = S_FALSE;
-
-    if ( pFrame == NULL )
-    {
-        return S_FALSE;
-    }
-
-    if ( pFrame->pMeshContainer != NULL )
-    {
-        hr = SetupBoneMatrixPointersOnMesh( pFrame->pMeshContainer );
-
-        if ( FAILED( hr ) )
-        {
-            return hr;
-        }
-    }
-
-    if ( pFrame->pFrameSibling != NULL )
-    {
-        hr = SetupBoneMatrixPointers( pFrame->pFrameSibling );
-
-        if ( FAILED( hr ) )
-        {
-            return hr;
-        }
-    }
-
-    if ( pFrame->pFrameFirstChild != NULL )
-    {
-        hr = SetupBoneMatrixPointers( pFrame->pFrameFirstChild );
-
-        if ( FAILED( hr ) )
-        {
-            return hr;
-        }
-    }
-
-    return S_OK;
-}
-
-HRESULT GAnimMeshObj::SetupBoneMatrixPointersOnMesh( LPD3DXMESHCONTAINER pMeshContainerBase )
-{
-    D3DXFrameEX *pFrameEx = NULL;
-
-    if ( pMeshContainerBase == NULL || pMeshContainerBase->pSkinInfo == NULL )
-    {
-        return S_FALSE;
-    }
-
-    D3DXMeshContainerEX *pMeshContainerEx = ( D3DXMeshContainerEX* )pMeshContainerBase;
 
 
-    DWORD dwNumBone = pMeshContainerEx->pSkinInfo->GetNumBones();
-
-    pMeshContainerEx->ppBoneMatrixPtrs = new D3DXMATRIX*[dwNumBone];
-
-    if ( pMeshContainerEx->ppBoneMatrixPtrs == NULL )
-    {
-        return E_OUTOFMEMORY;
-    }
-
-    for ( DWORD i = 0; i < dwNumBone; i++ )
-    {
-        char sBoneName[32];
-        ZeroMemory( sBoneName, sizeof( sBoneName ) );
-
-        strcpy( sBoneName, pMeshContainerEx->pSkinInfo->GetBoneName( i ) );
-
-        pFrameEx = ( D3DXFrameEX* )D3DXFrameFind( mpFrameRoot, sBoneName );
-
-        if ( pFrameEx == NULL )
-        {
-            return S_FALSE;
-        }
-
-        AddBoneInfo( sBoneName, &( pFrameEx->matCombinedTransformation ) );
-
-
-        pMeshContainerEx->ppBoneMatrixPtrs[i] = &( pFrameEx->matCombinedTransformation );
-    }
-
-    return S_OK;
-
-}
-
-VOID GAnimMeshObj::UpdateFrameMatrices( LPD3DXFRAME pFrameBase, LPD3DXMATRIX pParentMatrix )
+VOID GAnimMeshObj::UpdateFrameMatrices ( LPD3DXFRAME pFrameBase, LPD3DXMATRIX pParentMatrix )
 {
     if ( pFrameBase == NULL )
     {
         return;
     }
 
-    D3DXFrameEX *pFrameEx = ( D3DXFrameEX* )pFrameBase;
+    D3DXFrameEX *pFrameEx = ( D3DXFrameEX* ) pFrameBase;
 
     if ( pParentMatrix != NULL )
     {
-        D3DXMatrixMultiply( &pFrameEx->matCombinedTransformation, &pFrameEx->TransformationMatrix, pParentMatrix );
+        D3DXMatrixMultiply ( &pFrameEx->matCombinedTransformation, &pFrameEx->TransformationMatrix, pParentMatrix );
     }
     else
     {
@@ -170,16 +57,16 @@ VOID GAnimMeshObj::UpdateFrameMatrices( LPD3DXFRAME pFrameBase, LPD3DXMATRIX pPa
 
     if ( pFrameEx->pFrameSibling != NULL )
     {
-        UpdateFrameMatrices( pFrameEx->pFrameSibling, pParentMatrix );
+        UpdateFrameMatrices ( pFrameEx->pFrameSibling, pParentMatrix );
     }
 
     if ( pFrameEx->pFrameFirstChild != NULL )
     {
-        UpdateFrameMatrices( pFrameEx->pFrameFirstChild, &pFrameEx->matCombinedTransformation );
+        UpdateFrameMatrices ( pFrameEx->pFrameFirstChild, &pFrameEx->matCombinedTransformation );
     }
 }
 
-void GAnimMeshObj::DrawMeshContainer( D3DXMESHCONTAINER *pMeshContainerBase, D3DXFRAME *pFrameBase )
+void GAnimMeshObj::DrawMeshContainer ( D3DXMESHCONTAINER *pMeshContainerBase, D3DXFRAME *pFrameBase )
 {
     if ( pMeshContainerBase == NULL || pFrameBase == NULL )
     {
@@ -193,37 +80,37 @@ void GAnimMeshObj::DrawMeshContainer( D3DXMESHCONTAINER *pMeshContainerBase, D3D
     D3DXMATRIX matTmp;
 
 
-    D3DXMeshContainerEX *pMeshContainerEx = ( D3DXMeshContainerEX* )pMeshContainerBase;
-    D3DXFrameEX *pFrameEx = ( D3DXFrameEX* )pFrameBase;
+    D3DXMeshContainerEX *pMeshContainerEx = ( D3DXMeshContainerEX* ) pMeshContainerBase;
+    D3DXFrameEX *pFrameEx = ( D3DXFrameEX* ) pFrameBase;
 
     D3DCAPS9 d3dCap;
-    ZeroMemory( &d3dCap, sizeof( d3dCap ) );
-    D9DEVICE->GetDvc()->GetDeviceCaps( &d3dCap );
+    ZeroMemory ( &d3dCap, sizeof ( d3dCap ) );
+    D9DEVICE->GetDvc()->GetDeviceCaps ( &d3dCap );
 
     if ( pMeshContainerEx->pBoneCombinationBufffer != NULL )
     {
-        pBoneComb = ( D3DXBONECOMBINATION* )( pMeshContainerEx->pBoneCombinationBufffer->GetBufferPointer() );
+        pBoneComb = ( D3DXBONECOMBINATION* ) ( pMeshContainerEx->pBoneCombinationBufffer->GetBufferPointer() );
     }
 
 
-    D9DEVICE->OpenAllLight( true );
+    D9DEVICE->OpenAllLight ( true );
 
     DWORD dwAmbient = 0;
-    D9DEVICE->GetDvc()->GetRenderState( D3DRS_AMBIENT, &dwAmbient );
+    D9DEVICE->GetDvc()->GetRenderState ( D3DRS_AMBIENT, &dwAmbient );
 
     POINT pt = INPUTSYSTEM.GetMousePoint();
 
     bool bHit = false;
 
-    if ( INPUTSYSTEM.IsPressingButton( btLB ) )
+    if ( INPUTSYSTEM.IsPressingButton ( eButtonType_LeftButton ) )
     {
         if ( pMeshContainerEx != NULL && pMeshContainerEx->MeshData.pMesh != NULL && !m_bHit )
         {
-            m_bHit = Pick( pMeshContainerEx->MeshData.pMesh, pt );
+            m_bHit = Pick ( pMeshContainerEx->MeshData.pMesh, pt );
 
             if ( m_bHit )
             {
-                Toggle( GetTrans().mbCanMoveStep );
+                Toggle ( GetTrans().mbCanMoveStep );
             }
         }
     }
@@ -232,7 +119,7 @@ void GAnimMeshObj::DrawMeshContainer( D3DXMESHCONTAINER *pMeshContainerBase, D3D
     {
         if ( d3dCap.MaxVertexBlendMatrices >= pMeshContainerEx->NumInfl )
         {
-            D9DEVICE->GetDvc()->SetRenderState( D3DRS_INDEXEDVERTEXBLENDENABLE, FALSE );
+            D9DEVICE->GetDvc()->SetRenderState ( D3DRS_INDEXEDVERTEXBLENDENABLE, FALSE );
 
             for ( DWORD i = 0; i < pMeshContainerEx->NumInfl; ++i )
             {
@@ -247,44 +134,44 @@ void GAnimMeshObj::DrawMeshContainer( D3DXMESHCONTAINER *pMeshContainerBase, D3D
                         pMeshContainerEx->ppBoneMatrixPtrs[iMatrixIndex]
                     );
 
-                    D9DEVICE->GetDvc()->SetTransform( D3DTS_WORLDMATRIX( i ), &matTmp );
+                    D9DEVICE->GetDvc()->SetTransform ( D3DTS_WORLDMATRIX ( i ), &matTmp );
                 }
             }
 
-            D9DEVICE->GetDvc()->SetRenderState( D3DRS_VERTEXBLEND, pMeshContainerEx->NumInfl - 1 );
+            D9DEVICE->GetDvc()->SetRenderState ( D3DRS_VERTEXBLEND, pMeshContainerEx->NumInfl - 1 );
 
-            D9DEVICE->GetDvc()->SetMaterial( &pMeshContainerEx->pMaterials[pBoneComb[iAttr].AttribId].MatD3D );
+            D9DEVICE->GetDvc()->SetMaterial ( &pMeshContainerEx->pMaterials[pBoneComb[iAttr].AttribId].MatD3D );
 
             if ( m_bHit )
             {
-                gCursor.SetNowCursor( curGrasp );
-                D9DEVICE->GetDvc()->SetTexture( 0, NULL );
+                gCursor.SetNowCursor ( curGrasp );
+                D9DEVICE->GetDvc()->SetTexture ( 0, NULL );
             }
             else
             {
-                gCursor.SetNowCursor( curNormal );
-                D9DEVICE->GetDvc()->SetTexture( 0, mpFace );
+                gCursor.SetNowCursor ( curNormal );
+                D9DEVICE->GetDvc()->SetTexture ( 0, mpFace );
             }
 
 
             DWORD dwLight = 0;
 
-            D9DEVICE->GetDvc()->GetRenderState( D3DRS_LIGHTING, &dwLight );
+            D9DEVICE->GetDvc()->GetRenderState ( D3DRS_LIGHTING, &dwLight );
 
-            pMeshContainerEx->MeshData.pMesh->DrawSubset( iAttr );
+            pMeshContainerEx->MeshData.pMesh->DrawSubset ( iAttr );
 
         }
 
-        D9DEVICE->GetDvc()->SetRenderState( D3DRS_INDEXEDVERTEXBLENDENABLE, FALSE );
+        D9DEVICE->GetDvc()->SetRenderState ( D3DRS_INDEXEDVERTEXBLENDENABLE, FALSE );
 
-        D9DEVICE->GetDvc()->SetRenderState( D3DRS_VERTEXBLEND, FALSE );
+        D9DEVICE->GetDvc()->SetRenderState ( D3DRS_VERTEXBLEND, FALSE );
     }
 
-    D9DEVICE->OpenAllLight( false );
+    D9DEVICE->OpenAllLight ( false );
 
 }
 
-void GAnimMeshObj::DrawFrame( D3DXFRAME *pFrameBase )
+void GAnimMeshObj::DrawFrame ( D3DXFRAME *pFrameBase )
 {
     if ( pFrameBase == NULL )
     {
@@ -295,24 +182,24 @@ void GAnimMeshObj::DrawFrame( D3DXFRAME *pFrameBase )
 
     while ( pMeshContainer != NULL )
     {
-        DrawMeshContainer( pMeshContainer, pFrameBase );
+        DrawMeshContainer ( pMeshContainer, pFrameBase );
 
         pMeshContainer = pMeshContainer->pNextMeshContainer;
     }
 
     if ( pFrameBase->pFrameSibling != NULL )
     {
-        DrawFrame( pFrameBase->pFrameSibling );
+        DrawFrame ( pFrameBase->pFrameSibling );
     }
 
     if ( pFrameBase->pFrameFirstChild != NULL )
     {
-        DrawFrame( pFrameBase->pFrameFirstChild );
+        DrawFrame ( pFrameBase->pFrameFirstChild );
     }
 
 }
 
-eObjAnimState GAnimMeshObj::SetState( eObjAnimState oas, bool bBack )
+eObjAnimState GAnimMeshObj::SetState ( eObjAnimState oas, bool bBack )
 {
     ID3DXAnimationSet *pAS = NULL;
 
@@ -325,7 +212,7 @@ eObjAnimState GAnimMeshObj::SetState( eObjAnimState oas, bool bBack )
 
     GetTrans().mbBack = bBack;
 
-    if ( mpAnimController == NULL )
+    if ( mCloneAnimationController == NULL )
     {
         return oasNULL;
     }
@@ -343,47 +230,47 @@ eObjAnimState GAnimMeshObj::SetState( eObjAnimState oas, bool bBack )
     //获取动作集
     switch ( oas )
     {
-        case oasDead:
+    case oasDead:
 
-            mpAnimController->GetAnimationSetByName( "Death", &pAS );
+        mCloneAnimationController->GetAnimationSetByName ( "Death", &pAS );
 
-            break;
+        break;
 
-        case oasMoving:
+    case oasMoving:
 
-            mpAnimController->GetAnimationSetByName( "Move", &pAS );
+        mCloneAnimationController->GetAnimationSetByName ( "Move", &pAS );
 
-            break;
+        break;
 
-        case oasStandBy:
+    case oasStandBy:
 
-            mpAnimController->GetAnimationSetByName( "Stand_By", &pAS );
+        mCloneAnimationController->GetAnimationSetByName ( "Stand_By", &pAS );
 
-            break;
+        break;
 
-        case oasBeAttack:
+    case oasBeAttack:
 
-            mpAnimController->GetAnimationSetByName( "Be_Attacked", &pAS );
-            break;
+        mCloneAnimationController->GetAnimationSetByName ( "Be_Attacked", &pAS );
+        break;
 
-        case oasRunAttack:
+    case oasRunAttack:
 
-            mpAnimController->GetAnimationSetByName( "RunAttact", &pAS );
-            break;
+        mCloneAnimationController->GetAnimationSetByName ( "RunAttact", &pAS );
+        break;
 
-        case oasAttack:
+    case oasAttack:
 
-            mpAnimController->GetAnimationSetByName( "Attack", &pAS );
+        mCloneAnimationController->GetAnimationSetByName ( "Attack", &pAS );
 
-            SAFED_ELETE( mpAmmo );
+        SAFED_ELETE ( mpAmmo );
 
-            //mpAmmo = new CAmmoParticles;
+        //mpAmmo = new CAmmoParticles;
 
-            //mpAmmo->Create( this, D9DEVICE, 4000, mForceMap );
+        //mpAmmo->Create( this, D9DEVICE, 4000, mForceMap );
 
-            //mpAmmo->Shoot();
+        //mpAmmo->Shoot();
 
-            break;
+        break;
     }
 
     if ( pAS != NULL )
@@ -392,23 +279,23 @@ eObjAnimState GAnimMeshObj::SetState( eObjAnimState oas, bool bBack )
 
         if ( GetTrans().mbBack )
         {
-            mpAnimController->SetTrackSpeed( 0, -1 );
+            mCloneAnimationController->SetTrackSpeed ( 0, -1 );
         }
         else
         {
-            mpAnimController->SetTrackSpeed( 0, 1 );
+            mCloneAnimationController->SetTrackSpeed ( 0, 1 );
         }
 
 
         //设置动画集
 
-        hr = mpAnimController->SetTrackAnimationSet( 0, pAS );
+        hr = mCloneAnimationController->SetTrackAnimationSet ( 0, pAS );
 
         //设置动画播放起点
 
-        hr = mpAnimController->SetTrackPosition( 0, 0 );
+        hr = mCloneAnimationController->SetTrackPosition ( 0, 0 );
 
-        SAFERELEASE( mpAnimSet );
+        SAFERELEASE ( mpAnimSet );
 
         mdwOldAnimSetFrame = 0;
         mdwCurAnimSetFrame = 0;
@@ -422,21 +309,111 @@ eObjAnimState GAnimMeshObj::SetState( eObjAnimState oas, bool bBack )
     return m_ObjAnimState;
 }
 
-int GAnimMeshObj::Render( float fPass )
-{
-    GRenderObject::Render();
 
-    if ( mpFrameRoot != NULL )
+
+bool GAnimMeshObj::Pick ( ID3DXMesh *pMesh, POINT pt )
+{
+    HRESULT hr = S_FALSE;
+
+    BOOL bHit = false;
+
+    D3DXMATRIX matProj, matView, matWorld;
+    D3DXMATRIX matTmp;
+
+    D9DEVICE->GetDvc()->GetTransform ( D3DTS_PROJECTION, &matProj );
+    D9DEVICE->GetDvc()->GetTransform ( D3DTS_VIEW, &matView );
+    D9DEVICE->GetDvc()->GetTransform ( D3DTS_WORLD, &matWorld );
+
+    D3DXVECTOR4 vOrigin ( ZEROFLOAT, ZEROFLOAT, ZEROFLOAT, 1.0f );
+    D3DXVECTOR4 vDir;
+
+    //注意此处的2.0f与2的区别
+    vDir.x = ( 2.0f * pt.x / D9DEVICE->mWidth - 1 ) / matProj._11;
+    vDir.y = - ( 2.0f * pt.y / D9DEVICE->mHeight - 1 ) / matProj._22;
+    vDir.z = 1.0f;
+    vDir.w = 0.0f;
+
+    matTmp = matWorld * matView;
+    D3DXMatrixInverse ( &matTmp, NULL, &matTmp );
+
+    D3DXVec4Transform ( &vOrigin, &vOrigin, &matTmp );
+    D3DXVec4Transform ( &vDir, &vDir, &matTmp );
+
+    hr = D3DXIntersect ( pMesh, ( D3DXVECTOR3* ) &vOrigin, ( D3DXVECTOR3* ) &vDir, &bHit, NULL, NULL, NULL, NULL, NULL, NULL );
+
+    if ( FAILED ( hr ) )
     {
-        mpAnimController->AdvanceTime( fPass, NULL );
+        return false;
+    }
+
+    return ( BOOL ) bHit;
+}
+
+
+
+
+
+D3DXMATRIX GAnimMeshObj::GetWorldMatrixByBone ( char *sBoneName, bool bForTrans/*=false*/ )
+{
+    if ( IsStrEmpty ( sBoneName ) )
+    {
+        return GNode::GetWorldMatrixByBone ( sBoneName, bForTrans );
+    }
+    CXASSERT ( mResource );
+    GBoneLinker *pBoneInfo = mResource->GetBoneInfo ( sBoneName );
+
+    if ( pBoneInfo != NULL )
+    {
+        return * ( pBoneInfo->mTransform );
+    }
+
+    return GNode::GetWorldMatrixByBone ( sBoneName, bForTrans );
+}
+
+
+bool GAnimMeshObj::ReCreate()
+{
+    if ( !__super::ReCreate() )
+    {
+        return false;
+    }
+    GComponentMesh* componentMesh = ( GComponentMesh* ) mComponentOwner.GetComponent ( eComponentType_Mesh );
+    CXASSERT_RESULT_FALSE ( componentMesh );
+    mResource = GAnimationManager::GetSingleton().GetResource ( componentMesh->MeshFile().c_str() );
+    //                             if ( !IsStrEmpty ( m_sTextureName ) )
+    //{
+    //    D3DXCreateTextureFromFileA ( D9DEVICE->GetDvc(), m_sTextureName, &mpFace );
+    //}
+    CXASSERT_RETURN_FALSE ( mResource );
+    ID3DXAnimationController* orginal = mResource->mAnimationController;
+	if (orginal)
+	{
+		CXASSERT_RESULT_FALSE ( orginal->CloneAnimationController
+			(
+			orginal->GetMaxNumAnimationOutputs(), orginal->GetMaxNumAnimationSets(),
+			orginal->GetMaxNumTracks(), orginal->GetMaxNumEvents(), &mCloneAnimationController
+			)
+			);
+	}
+
+    SetState ( oasStandBy, false );
+
+    return true;
+}
+
+void GAnimMeshObj::Update()
+{
+    if ( mCloneAnimationController )
+    {
+        mCloneAnimationController->AdvanceTime ( TIMER.GetFrameTimeSec(), NULL );
 
         if ( mpAnimSet != NULL )
         {
             D3DXTRACK_DESC trackDesc;
 
-            mpAnimController->GetTrackDesc( 0, &trackDesc );
+            mCloneAnimationController->GetTrackDesc ( 0, &trackDesc );
 
-            double dbPassTime = mpAnimSet->GetPeriodicPosition( trackDesc.Position );
+            double dbPassTime = mpAnimSet->GetPeriodicPosition ( trackDesc.Position );
 
             mdwCurAnimSetFrame = dbPassTime * 300000;
 
@@ -448,505 +425,37 @@ int GAnimMeshObj::Render( float fPass )
             mdwOldAnimSetFrame = mdwCurAnimSetFrame;
         }
     }
-
-    UpdateFrameMatrices( mpFrameRoot, &_matWorld );
-
-    DrawFrame( mpFrameRoot );
-
-    if ( mpAmmo != NULL )
+    if ( mResource && mResource->mFrameRoot )
     {
-        mpAmmo->Update();
-
-        mpAmmo->Render();
-
-        if ( !mpAmmo->GetTrans().mbAutoMove )
-        {
-            SAFED_ELETE( mpAmmo );
-        }
+        UpdateFrameMatrices ( mResource->mFrameRoot, &_matWorld );
     }
-
-    m_bHit = false;
-
-    return TRUE_INT;
-
+	if ( mpAmmo != NULL )
+	{
+		mpAmmo->Update();
+	}
 }
 
-bool GAnimMeshObj::Pick( ID3DXMesh *pMesh, POINT pt )
+
+bool GAnimMeshObj::Render()
 {
-    HRESULT hr = S_FALSE;
-
-    BOOL bHit = false;
-
-    D3DXMATRIX matProj, matView, matWorld;
-    D3DXMATRIX matTmp;
-
-    D9DEVICE->GetDvc()->GetTransform( D3DTS_PROJECTION, &matProj );
-    D9DEVICE->GetDvc()->GetTransform( D3DTS_VIEW, &matView );
-    D9DEVICE->GetDvc()->GetTransform( D3DTS_WORLD, &matWorld );
-
-    D3DXVECTOR4 vOrigin( ZEROFLOAT, ZEROFLOAT, ZEROFLOAT, 1.0f );
-    D3DXVECTOR4 vDir;
-
-    //注意此处的2.0f与2的区别
-    vDir.x = ( 2.0f * pt.x / D9DEVICE->mWidth - 1 ) / matProj._11;
-    vDir.y = -( 2.0f * pt.y / D9DEVICE->mHeight - 1 ) / matProj._22;
-    vDir.z = 1.0f;
-    vDir.w = 0.0f;
-
-    matTmp = matWorld * matView;
-    D3DXMatrixInverse( &matTmp, NULL, &matTmp );
-
-    D3DXVec4Transform( &vOrigin, &vOrigin, &matTmp );
-    D3DXVec4Transform( &vDir, &vDir, &matTmp );
-
-    hr = D3DXIntersect( pMesh, ( D3DXVECTOR3* )&vOrigin, ( D3DXVECTOR3* )&vDir, &bHit, NULL, NULL, NULL, NULL, NULL, NULL );
-
-    if ( FAILED( hr ) )
-    {
+    if ( !__super::Render() )
         return false;
-    }
 
-    return ( BOOL )bHit;
-}
-
-FiLinker * GAnimMeshObj::GetBoneInfo( CChar*sBoneName )
-{
-    FiLinker *pBoneInfo = NULL;
-
-    CXASSERT( sBoneName );
-    FiLinkerMap::iterator i = mBoneInfos.find( sBoneName );
-
-    if ( i != mBoneInfos.end() )
+    if ( mResource && mResource->mFrameRoot )
     {
-        return i->second;
+        DrawFrame ( mResource->mFrameRoot );
+        if ( mpAmmo != NULL )
+        {
+            mpAmmo->Render();
+
+            if ( !mpAmmo->GetTrans().mbAutoMove )
+            {
+                SAFED_ELETE ( mpAmmo );
+            }
+        }
+
+        m_bHit = false;
     }
-
-    return pBoneInfo;
-}
-
-int GAnimMeshObj::AddBoneInfo( CChar*sBoneName, D3DXMATRIX *pmat )
-{
-    CXASSERT( sBoneName );
-    FiLinker*  linker = new FiLinker;
-    linker->Name = sBoneName;
-    linker->Transform = pmat;
-
-    if ( !mBoneInfos.Insert( sBoneName, linker ) )
-    {
-        CXASSERT( 0 );
-        return 0;
-    }
-
-    return mBoneInfos.size();
-}
-
-D3DXMATRIX GAnimMeshObj::GetWorldMatrixByBone( char *sBoneName, bool bForTrans/*=false*/ )
-{
-    if ( IsStrEmpty( sBoneName ) )
-    {
-        return GNode::GetWorldMatrixByBone( sBoneName, bForTrans );
-    }
-
-    FiLinker *pBoneInfo = GetBoneInfo( sBoneName );
-
-    if ( pBoneInfo != NULL )
-    {
-        return *( pBoneInfo->Transform );
-    }
-
-    return GNode::GetWorldMatrixByBone( sBoneName, bForTrans );
-}
-
-int GAnimMeshObj::AfterCreate()
-{
-    CAllocateHierarchy Alloc( D9DEVICE->GetDvc() );
-
-    HRESULT hr = S_FALSE;
-
-    if ( !IsStrEmpty( m_sXFileName ) )
-    {
-        hr = D3DXLoadMeshHierarchyFromXA( m_sXFileName, D3DXMESH_MANAGED, D9DEVICE->GetDvc(), &Alloc, NULL, &mpFrameRoot, &mpAnimController );
-    }
-
-    if ( FAILED( hr ) )
-    {
-        return hr;
-    }
-
-
-
-    if ( !IsStrEmpty( m_sTextureName ) )
-    {
-        D3DXCreateTextureFromFileA( D9DEVICE->GetDvc(), m_sTextureName, &mpFace );
-    }
-
-    SetupBoneMatrixPointers( mpFrameRoot );
-
-    SetState( oasStandBy, false );
-
-    return _nID;
-}
-
-bool GAnimMeshObj::Create()
-{
-    if(!__super::Create())
-		return false;
-    AfterCreate();
-
     return true;
 }
 
-STDMETHODIMP CAllocateHierarchy::CreateFrame( LPCSTR Name, LPD3DXFRAME *ppNewFrame )
-{
-
-    HRESULT hr = S_FALSE;
-
-    *ppNewFrame = NULL;
-
-    D3DXFrameEX *pFrameTmp;
-    pFrameTmp = new D3DXFrameEX;
-
-    if ( pFrameTmp == NULL )
-    {
-        delete( pFrameTmp );
-        return E_OUTOFMEMORY;
-    }
-
-    hr = AllocateName( ( LPCTSTR )Name, ( LPTSTR * )( &pFrameTmp->Name ) );
-
-    if ( FAILED( hr ) )
-    {
-        delete( pFrameTmp );
-        return S_FALSE;
-    }
-
-    D3DXMatrixIdentity( &pFrameTmp->TransformationMatrix );
-
-    D3DXMatrixIdentity( &pFrameTmp->matCombinedTransformation );
-
-    pFrameTmp->pFrameFirstChild = NULL;
-
-    pFrameTmp->pFrameSibling = NULL;
-
-    pFrameTmp->pMeshContainer = NULL;
-
-    *ppNewFrame = pFrameTmp;
-
-    pFrameTmp = NULL;
-
-    return S_OK;
-
-}
-
-
-STDMETHODIMP CAllocateHierarchy::CreateMeshContainer
-(
-    LPCSTR Name,
-    CONST D3DXMESHDATA *pMeshData,
-    CONST D3DXMATERIAL *pMaterials,
-    CONST D3DXEFFECTINSTANCE *pEffectInstances,
-    DWORD NumMaterials,
-    CONST DWORD *pAdjacency,
-    LPD3DXSKININFO pSkinInfo,
-    LPD3DXMESHCONTAINER *ppNewMeshContainer
-)
-{
-
-    *ppNewMeshContainer = NULL;
-
-    ID3DXMesh *pMesh = NULL;
-
-    HRESULT hr = S_FALSE;
-
-    D3DXMeshContainerEX *pMeshContainerTmp = NULL;	//临时MeshContainer变量，为了给ppNewMeshContainer赋予完善的信息
-
-    IDirect3DDevice9 *pD9Device = NULL;				//在创建纹理中要用到
-
-    DWORD dwNumFace = 0;								//pMeshContainer->MeshData.pMesh中Mesh的面数
-
-    DWORD dwNumBone = 0;								//影响该容器中Mesh的骨骼数量
-
-
-    //获取MeshData
-    if ( pMeshData->Type != D3DXMESHTYPE_MESH || pMeshData->pMesh == NULL )
-    {
-        return S_FALSE;
-    }
-
-    if ( pMeshData->pMesh->GetFVF() == 0 )
-    {
-        return S_FALSE;
-    }
-
-    pMeshContainerTmp = new D3DXMeshContainerEX;
-
-    if ( pMeshContainerTmp == NULL )
-    {
-        hr = E_OUTOFMEMORY;
-        goto e_Exit;
-    }
-
-    ZeroMemory( pMeshContainerTmp, sizeof( D3DXMeshContainerEX ) );
-
-    pMeshData->pMesh->GetDevice( &pD9Device );
-
-    if ( pD9Device == NULL )
-    {
-        goto e_Exit;
-    }
-
-    pMesh = pMeshData->pMesh;
-
-    if ( !( pMesh->GetFVF() && D3DFVF_NORMAL ) )	//没有法线信息为其添加一个
-    {
-        hr = pMeshData->pMesh->CloneMeshFVF(
-                 pMeshData->pMesh->GetOptions(),
-                 D3DFVF_NORMAL | pMeshData->pMesh->GetFVF(),
-                 pD9Device,
-                 &pMeshContainerTmp->MeshData.pMesh
-             );
-
-        if ( FAILED( hr ) )
-        {
-            goto e_Exit;
-        }
-
-        hr = D3DXComputeNormals( pMeshContainerTmp->MeshData.pMesh, 0 );
-
-        if ( FAILED( hr ) )
-        {
-            goto e_Exit;
-        }
-
-        pMesh = pMeshContainerTmp->MeshData.pMesh;
-    }
-    else
-    {
-        pMeshContainerTmp->MeshData.pMesh = pMesh;
-
-        pMesh->AddRef();
-    }
-
-    pMeshContainerTmp->MeshData.Type = D3DXMESHTYPE_MESH;
-
-    //分配容器名字
-    hr = AllocateName( ( LPCTSTR )Name, ( LPTSTR * )( &pMeshContainerTmp->Name ) );
-
-    if ( FAILED( hr ) )
-    {
-        goto e_Exit;
-    }
-
-    //获取材质信息
-
-    dwNumFace = pMeshContainerTmp->MeshData.pMesh->GetNumFaces();
-
-    pMeshContainerTmp->NumMaterials = max( 1, NumMaterials );
-
-    pMeshContainerTmp->pAdjacency = new DWORD[dwNumFace * 3];
-
-    pMeshContainerTmp->ppTexture = new IDirect3DTexture9*[pMeshContainerTmp->NumMaterials];
-
-    pMeshContainerTmp->pMaterials = new D3DXMATERIAL[pMeshContainerTmp->NumMaterials];
-
-    if ( pMeshContainerTmp->ppTexture == NULL || pMeshContainerTmp->pMaterials == NULL )
-    {
-        hr = E_OUTOFMEMORY;
-        goto e_Exit;
-    }
-
-    memcpy( pMeshContainerTmp->pAdjacency, pAdjacency, sizeof( DWORD )*dwNumFace * 3 );
-    ZeroMemory( pMeshContainerTmp->ppTexture, pMeshContainerTmp->NumMaterials * sizeof( IDirect3DTexture9* ) );
-
-    if ( NumMaterials > 0 )
-    {
-        memcpy( pMeshContainerTmp->pMaterials, pMaterials, sizeof( D3DXMATERIAL )*NumMaterials );
-
-        for ( DWORD i = 0; i < NumMaterials; i++ )
-        {
-            if ( pMeshContainerTmp->pMaterials[i].pTextureFilename != NULL )
-            {
-                hr = D3DXCreateTextureFromFileA( D9DEVICE->GetDvc(), pMeshContainerTmp->pMaterials[i].pTextureFilename, &pMeshContainerTmp->ppTexture[i] );
-            }
-        }
-    }
-    else	//没有材质信息就为其添加一个
-    {
-        pMeshContainerTmp->pMaterials[0].pTextureFilename = NULL;
-        pMeshContainerTmp->pMaterials[0].MatD3D.Diffuse.r = 0.8f;
-        pMeshContainerTmp->pMaterials[0].MatD3D.Diffuse.g = 0.8f;
-        pMeshContainerTmp->pMaterials[0].MatD3D.Diffuse.b = 0.8f;
-
-        pMeshContainerTmp->pMaterials[0].MatD3D.Specular = pMeshContainerTmp->pMaterials[0].MatD3D.Diffuse;
-    }
-
-    if ( pSkinInfo != NULL )
-    {
-        pMeshContainerTmp->pSkinInfo = pSkinInfo;
-        pSkinInfo->AddRef();
-
-        pMeshContainerTmp->pOriginMesh = pMesh;
-        pMesh->AddRef();
-
-        dwNumBone = pMeshContainerTmp->pSkinInfo->GetNumBones();
-
-        pMeshContainerTmp->pBoneOffsetMatrices = new D3DXMATRIX[dwNumBone];
-
-        if ( pMeshContainerTmp->pBoneOffsetMatrices == NULL )
-        {
-            hr = E_OUTOFMEMORY;
-            goto e_Exit;
-        }
-
-        for ( DWORD i = 0; i < dwNumBone; i++ )
-        {
-            pMeshContainerTmp->pBoneOffsetMatrices[i] = *( pMeshContainerTmp->pSkinInfo->GetBoneOffsetMatrix( i ) );
-        }
-
-    }
-
-    hr = GenerateSkinnedMesh( pMeshContainerTmp );
-
-    *ppNewMeshContainer = pMeshContainerTmp;
-    pMeshContainerTmp = NULL;
-
-e_Exit:
-
-    SAFERELEASE( pD9Device );
-
-    if ( pMeshContainerTmp != NULL )
-    {
-        DestroyMeshContainer( pMeshContainerTmp );
-    }
-
-    return S_OK;
-}
-
-CAllocateHierarchy::CAllocateHierarchy( IDirect3DDevice9 * DVC )
-{
-}
-
-HRESULT CAllocateHierarchy::DestroyMeshContainer( LPD3DXMESHCONTAINER pMeshContainerToFree )
-{
-    D3DXMeshContainerEX *pMeshContainerTmp = ( D3DXMeshContainerEX * )pMeshContainerToFree;
-
-    SAFE_DELETE_ARRAY( pMeshContainerTmp->Name );
-    SAFE_DELETE_ARRAY( pMeshContainerTmp->pAdjacency );
-    SAFE_DELETE_ARRAY( pMeshContainerTmp->pBoneOffsetMatrices );
-    SAFE_DELETE_ARRAY( pMeshContainerTmp->pMaterials );
-
-    if ( pMeshContainerTmp->ppTexture != NULL )
-    {
-        for ( DWORD i = 0; i < pMeshContainerTmp->NumMaterials; i++ )
-        {
-            SAFERELEASE( pMeshContainerTmp->ppTexture[i] );
-        }
-    }
-
-    SAFE_DELETE_ARRAY( pMeshContainerTmp->ppTexture );
-    SAFE_DELETE_ARRAY( pMeshContainerTmp->ppBoneMatrixPtrs );
-
-    SAFERELEASE( pMeshContainerTmp->pOriginMesh );
-    SAFERELEASE( pMeshContainerTmp->MeshData.pMesh );
-    SAFERELEASE( pMeshContainerTmp->pSkinInfo );
-    SAFERELEASE( pMeshContainerTmp->pBoneCombinationBufffer );
-
-    SAFED_ELETE( pMeshContainerTmp );
-
-    return S_OK;
-}
-
-HRESULT CAllocateHierarchy::GenerateSkinnedMesh( D3DXMeshContainerEX *pMeshContainerEx )
-{
-
-    HRESULT hr = S_FALSE;
-
-    D3DCAPS9 d3dCap;
-    ZeroMemory( &d3dCap, sizeof( d3dCap ) );
-
-    D9DEVICE->GetDvc()->GetDeviceCaps( &d3dCap );
-
-    if ( pMeshContainerEx->pSkinInfo == NULL )
-    {
-        return S_FALSE;
-    }
-
-    SAFERELEASE( pMeshContainerEx->MeshData.pMesh );
-    SAFERELEASE( pMeshContainerEx->pBoneCombinationBufffer );
-
-    hr = pMeshContainerEx->pSkinInfo->ConvertToBlendedMesh
-         (
-             pMeshContainerEx->pOriginMesh,
-             D3DXMESH_MANAGED | D3DXMESHOPT_VERTEXCACHE,
-             pMeshContainerEx->pAdjacency,
-             NULL, NULL, NULL,
-             &pMeshContainerEx->NumInfl,
-             &pMeshContainerEx->NumAttributeGroups,
-             &pMeshContainerEx->pBoneCombinationBufffer,
-             &pMeshContainerEx->MeshData.pMesh
-         );
-
-    if ( FAILED( hr ) )
-    {
-        return hr;
-    }
-
-    D3DXBONECOMBINATION *pBoneCombinations = ( D3DXBONECOMBINATION* )( pMeshContainerEx->pBoneCombinationBufffer->GetBufferPointer() );
-
-    DWORD dwIndex;
-
-    for ( dwIndex = 0; dwIndex < pMeshContainerEx->NumAttributeGroups; dwIndex++ )
-    {
-        DWORD dwInfl = 0;
-
-        for ( DWORD i = 0; i < pMeshContainerEx->NumInfl; i++ )
-        {
-            if ( pBoneCombinations[dwIndex].BoneId[i] != UINT_MAX )
-            {
-                dwInfl++;
-            }
-        }
-
-
-        if ( dwInfl > d3dCap.MaxVertexBlendMatrices )	//执行顶点混合时，设备可以支持的矩阵复合的最大数量
-        {
-            break;
-        }
-    }
-
-    if ( dwIndex < pMeshContainerEx->NumAttributeGroups )
-    {
-        ID3DXMesh *pMeshTmp = NULL;
-
-        hr = pMeshContainerEx->MeshData.pMesh->CloneMeshFVF
-             (
-                 pMeshContainerEx->MeshData.pMesh->GetOptions() | D3DXMESH_SOFTWAREPROCESSING,
-                 pMeshContainerEx->MeshData.pMesh->GetFVF(),
-                 D9DEVICE->GetDvc(), &pMeshTmp
-             );
-
-        if ( FAILED( hr ) )
-        {
-            return hr;
-        }
-
-        pMeshContainerEx->MeshData.pMesh->Release();
-        pMeshContainerEx->MeshData.pMesh = pMeshTmp;
-
-        pMeshTmp = NULL;
-
-    }
-
-    return S_OK;
-
-}
-
-CAllocateHierarchy::~CAllocateHierarchy()
-{
-
-}
-
-STDMETHODIMP CAllocateHierarchy::DestroyFrame( LPD3DXFRAME pFrameToFree )
-{
-    return S_OK;
-}

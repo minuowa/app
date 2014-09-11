@@ -3,17 +3,29 @@
 #include "GComponentTrans.h"
 #include "GFactory.h"
 #include "GComponentFactory.h"
+#include "GNode.h"
 
 
 GComponentInterface::GComponentInterface ( void )
     : mComponentType ( eComponentType_Count )
     , mCanDetach ( true )
+    , mTarget ( 0 )
 {
 }
 
 
 GComponentInterface::~GComponentInterface ( void )
 {
+}
+
+void GComponentInterface::SetTarget ( GNode* target )
+{
+    mTarget = target;
+}
+
+GNode* GComponentInterface::GetTarget() const
+{
+    return mTarget;
 }
 
 
@@ -48,32 +60,32 @@ GComponentInterface* GComponentOwner::GetComponent ( eComponentType type ) const
 
 
 
-GComponentInterface* GComponentOwner::AttachComponent( eComponentType type )
+GComponentInterface* GComponentOwner::AttachComponent ( eComponentType type )
 {
-	assert ( type < eComponentType_Count );
-	if ( !GetComponent ( type ) )
-	{
-		GComponentFactory::ComponentCreator* creator = 
-			CXSingleton<GComponentFactory>::GetSingleton().GetCreator ( type );
-		CXASSERT_RESULT_FALSE ( creator );
-		mCompoents[type] = creator->mCreator();
-	}
-	return mCompoents[type];
+    assert ( type < eComponentType_Count );
+    if ( !GetComponent ( type ) )
+    {
+        GComponentFactory::ComponentCreator* creator =
+            CXSingleton<GComponentFactory>::GetSingleton().GetCreator ( type );
+        CXASSERT_RESULT_FALSE ( creator );
+        mCompoents[type] = creator->mCreator();
+    }
+    return mCompoents[type];
 }
 
-GComponentInterface* GComponentOwner::AttachComponent( const char* name )
+GComponentInterface* GComponentOwner::AttachComponent ( const char* name )
 {
-	GComponentInterface* component=GetComponent(name);
-	if (component)
-	{
-		return component;
-	}
-	GComponentFactory::ComponentCreator* creator = 
-		CXSingleton<GComponentFactory>::GetSingleton().GetCreator ( name );
-	CXASSERT_RESULT_FALSE ( creator );
-	CXASSERT_RESULT_FALSE ( !mCompoents[creator->mType] );
-	mCompoents[creator->mType] = creator->mCreator();
-	return mCompoents[creator->mType];
+    GComponentInterface* component = GetComponent ( name );
+    if ( component )
+    {
+        return component;
+    }
+    GComponentFactory::ComponentCreator* creator =
+        CXSingleton<GComponentFactory>::GetSingleton().GetCreator ( name );
+    CXASSERT_RESULT_FALSE ( creator );
+    CXASSERT_RESULT_FALSE ( !mCompoents[creator->mType] );
+    mCompoents[creator->mType] = creator->mCreator();
+    return mCompoents[creator->mType];
 }
 
 

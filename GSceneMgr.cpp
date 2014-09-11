@@ -1,13 +1,10 @@
 #include "GGameDemoHeader.h"
 #include "GSceneMgr.h"
 #include "GGameMap.h"
-#include "EditorSheetBase.h"
 #include "GGame.h"
-#include "EEditorSheetManager.h"
 #include "GComponentTrans.h"
 #include "GComponentMesh.h"
 #include "GComponentFactory.h"
-#include "EObjectListSheet.h"
 #include "GComponentBox.h"
 
 GSceneMgr::GSceneMgr ( void )
@@ -24,31 +21,19 @@ GSceneMgr::~GSceneMgr ( void )
 
 }
 
-bool GSceneMgr::Init ( GD9Device *DVC )
+bool GSceneMgr::Init( const GD9Device& DVC )
 {
     InitNodeFactory();
     InitComponentFactory();
 
-    if ( TheEditor )
-    {
-        TheEditor->AddWatcher ( this );
-        EObjectListSheet* objlist = TheEditor->GetObjectListSheet();
-        EPropertySheet* propSheet = TheEditor->GetPropertySheet();
-        //AddWatcher((Watcher*));
-        AddWatcher ( objlist );
-        AddWatcher ( propSheet );
-        propSheet->AddWatcher ( this );
-        objlist->AddWatcher ( this );
-    }
-
     mSceneRootNode = new GNode();
     mSceneRootNode->SetNodeName ( "Scene Root" );
 
-    EditorEvent event;
-    event.mType = eSceneToEditor_Add;
-    event.mArgs.push_back ( mSceneRootNode->GetEditName() );
-    event.mArgs.push_back ( "" );
-    Notify ( event );
+    //EditorEvent event;
+    //event.mType = eSceneToEditor_Add;
+    //event.mArgs.push_back ( mSceneRootNode->GetObjectName() );
+    //event.mArgs.push_back ( "" );
+    //Notify ( event );
 
     mSceneStaticRootNode = new GNode();
     mSceneDynamiRootNode = new GNode();
@@ -98,7 +83,11 @@ void GSceneMgr::SetProj()
 
 void GSceneMgr::Update ( float fPass )
 {
-    mCurCamera->Update();
+    //mCurCamera->Update();
+	if (mSceneRootNode)
+	{
+		mSceneRootNode->Update();
+	}
 }
 
 void GSceneMgr::Delete ( CGameStaticObj *pObj )
@@ -122,7 +111,10 @@ bool GSceneMgr::SaveScene ( CChar* xmlFile )
     doc.append_node (
         doc.allocate_node ( rapidxml::node_pi, doc.allocate_string ( "xml version=\"1.0\" encoding=\"UTF-8\"" ) )
     );
-    mSceneRootNode->LinkTo ( &doc );
+    CXRapidxmlNode* root = doc.allocate_node ( rapidxml::node_element );
+    root->name ( "GameObects" );
+    doc.append_node ( root );
+    mSceneRootNode->LinkTo ( root );
     CXRapidxmlWriter writer;
     writer.AppendChild ( &doc );
     writer.Write ( xmlFile );
@@ -163,7 +155,9 @@ void GSceneMgr::ProcessEvent()
 
 GNode* GSceneMgr::GetNodeByName ( const char* name )
 {
-    return mSceneRootNode->GetNodeByName ( name );
+    if ( mSceneRootNode )
+        return mSceneRootNode->GetNodeByName ( name );
+    return 0;
 }
 
 #define __RegisterGameObjCreator(className) \
@@ -176,19 +170,19 @@ void GSceneMgr::InitNodeFactory()
     __RegisterGameObjCreator ( GMeshBaseObj );
     __RegisterGameObjCreator ( GRenderObject );
 
-    if ( TheEditor )
-    {
-        typedef GFactory<GNode>::ObjCreatorMap GNodeCreatorMap;
-        const GNodeCreatorMap& nodeCreatorMap = mGameObjFactory.GetCreators();
-        GNodeCreatorMap::const_iterator walk = nodeCreatorMap.begin();
-        GNodeCreatorMap::const_iterator end = nodeCreatorMap.end();
-        CharStringArr gameobjectTypeArr;
-        for ( ; walk != end; ++walk )
-        {
-            gameobjectTypeArr.push_back ( walk->first.c_str() );
-        }
-        TheEditor->InitObjectMenu ( gameobjectTypeArr );
-    }
+    //if ( TheEditor )
+    //{
+    //    typedef GFactory<GNode>::ObjCreatorMap GNodeCreatorMap;
+    //    const GNodeCreatorMap& nodeCreatorMap = mGameObjFactory.GetCreators();
+    //    GNodeCreatorMap::const_iterator walk = nodeCreatorMap.begin();
+    //    GNodeCreatorMap::const_iterator end = nodeCreatorMap.end();
+    //    CharStringArr gameobjectTypeArr;
+    //    for ( ; walk != end; ++walk )
+    //    {
+    //        gameobjectTypeArr.push_back ( walk->first.c_str() );
+    //    }
+    //    TheEditor->InitObjectMenu ( gameobjectTypeArr );
+    //}
 }
 
 
@@ -198,114 +192,122 @@ void GSceneMgr::InitComponentFactory()
     __RegisterComponentCreator ( GComponentMesh );
     __RegisterComponentCreator ( GComponentBox );
 
-    if ( TheEditor )
-    {
-        typedef GComponentFactory::ComponentCreatorMap ComponentCreatorMap;
-        const ComponentCreatorMap& nodeCreatorMap =
-            CXSingleton<GComponentFactory>::GetSingleton().GetCreators();
-        ComponentCreatorMap::const_iterator walk = nodeCreatorMap.begin();
-        ComponentCreatorMap::const_iterator end = nodeCreatorMap.end();
-        CharStringArr componentTypeArr;
-        for ( ; walk != end; ++walk )
-        {
-            componentTypeArr.push_back ( walk->first.c_str() );
-        }
-        TheEditor->InitComponentMenu ( componentTypeArr );
-    }
+    //if ( TheEditor )
+    //{
+    //    typedef GComponentFactory::ComponentCreatorMap ComponentCreatorMap;
+    //    const ComponentCreatorMap& nodeCreatorMap =
+    //        CXSingleton<GComponentFactory>::GetSingleton().GetCreators();
+    //    ComponentCreatorMap::const_iterator walk = nodeCreatorMap.begin();
+    //    ComponentCreatorMap::const_iterator end = nodeCreatorMap.end();
+    //    CharStringArr componentTypeArr;
+    //    for ( ; walk != end; ++walk )
+    //    {
+    //        componentTypeArr.push_back ( walk->first.c_str() );
+    //    }
+    //    TheEditor->InitComponentMenu ( componentTypeArr );
+    //}
 }
 
 void GSceneMgr::EditorSetObjectProperty ( GNode* node )
 {
-    if ( node && TheEditor )
-    {
-        if ( !node->IsRegisterAll() )
-            node->RegisterAll();
+    //if ( node && TheEditor )
+    //{
+    //    if ( !node->IsRegisterAll() )
+    //        node->RegisterAll();
 
-        EPropertySheet* propSheet = TheEditor->GetPropertySheet();
-        CXASSERT_RETURN ( propSheet );
+    //    EPropertySheet* propSheet = TheEditor->GetPropertySheet();
+    //    CXASSERT_RETURN ( propSheet );
 
-        const CategoryPropertyMap& cateMap = node->GetPropertyMap();
+    //    const CategoryPropertyMap& cateMap = node->GetPropertyMap();
 
-        propSheet->ClearPropertyies();
+    //    propSheet->ClearPropertyies();
 
-        CategoryPropertyMap::const_iterator walk = cateMap.begin();
-        CategoryPropertyMap::const_iterator end = cateMap.end();
-        for ( ; walk != end; ++walk )
-        {
-            PropertyMap* propMap = walk->second;
-            PropertyMap::iterator propIt = propMap->begin();
-            PropertyMap::iterator propEnd = propMap->end();
-            for ( ; propIt != propEnd; ++propIt )
-            {
-                propSheet->AddProperty ( walk->first.c_str(), propIt->first.c_str(), propIt->second );
-            }
-        }
-    }
+    //    CategoryPropertyMap::const_iterator walk = cateMap.begin();
+    //    CategoryPropertyMap::const_iterator end = cateMap.end();
+    //    for ( ; walk != end; ++walk )
+    //    {
+    //        PropertyMap* propMap = walk->second;
+    //        PropertyMap::iterator propIt = propMap->begin();
+    //        PropertyMap::iterator propEnd = propMap->end();
+    //        for ( ; propIt != propEnd; ++propIt )
+    //        {
+    //            propSheet->AddProperty ( walk->first.c_str(), propIt->first.c_str(), propIt->second );
+    //        }
+    //    }
+    //}
 }
 
 void GSceneMgr::EditorUpdatePopupMenu ( GNode* node )
 {
-    if ( TheEditor && node )
-    {
-        TheEditor->ResetComponentMenuState();
-        GComponentOwner& owner = node->GetComponentOwner();
-        for ( int i = 0; i < eComponentType_Count; ++i )
-        {
-            GComponentInterface* component = owner.GetComponent ( ( eComponentType ) i );
-            if ( component )
-            {
-                TheEditor->SetComponentMenuState ( component->GetComponentName(), true, component->CanDetach()  );
-            }
-        }
-    }
+    //if ( TheEditor && node )
+    //{
+    //    TheEditor->ResetComponentMenuState();
+    //    GComponentOwner& owner = node->GetComponentOwner();
+    //    for ( int i = 0; i < eComponentType_Count; ++i )
+    //    {
+    //        GComponentInterface* component = owner.GetComponent ( ( eComponentType ) i );
+    //        if ( component )
+    //        {
+    //            TheEditor->SetComponentMenuState ( component->GetComponentName(), true, component->CanDetach()  );
+    //        }
+    //    }
+    //}
 }
 
-bool GSceneMgr::OnNotify ( const EditorEvent& event )
-{
-    if ( !__super::OnNotify ( event ) )
-        return false;
-    switch ( event.mType )
-    {
-    case eEditorToScene_Add:
-    {
-        CharString typeName = event.mArgs[0];
-        GNode* node = mGameObjFactory.Create ( typeName.c_str() );
-        mSceneRootNode->AddChild ( node );
-    }
-    break;
-    case eEditorToSecne_Select:
-    {
-        CharString objName = event.mArgs[0];
-        GNode* node = GetNodeByName ( objName );
-        EditorSetObjectProperty ( node );
-        EditorUpdatePopupMenu ( node );
-    }
-    break;
-    case eEditorToScene_ComponentAttach:
-    {
-        CharString objName = event.mArgs[0];
-        CharString componenttype = event.mArgs[1];
-        GNode* node = GetNodeByName ( objName );
-        if ( node )
-        {
-            node->AttachComponent ( componenttype );
-        }
-    }
-    break;
-    case eEditorToScene_ComponentDettach:
-    {
-        CharString objName = event.mArgs[0];
-        CharString componenttype = event.mArgs[1];
-        GNode* node = GetNodeByName ( objName );
-        if ( node )
-        {
-            node->DetachComponent ( componenttype );
-        }
-    }
-    break;
-    }
-    return true;
-}
+//bool GSceneMgr::OnNotify ( const EditorEvent& event )
+//{
+//    if ( !__super::OnNotify ( event ) )
+//        return false;
+//    switch ( event.mType )
+//    {
+//    case eEditorToScene_Add:
+//    {
+//        String typeName = event.mArgs[0];
+//        GNode* node = mGameObjFactory.Create ( typeName.c_str() );
+//        mSceneRootNode->AddChild ( node );
+//    }
+//    break;
+//    case eEditorToSecne_Select:
+//    {
+//        String objName = event.mArgs[0];
+//        GNode* node = GetNodeByName ( objName );
+//        EditorSetObjectProperty ( node );
+//        EditorUpdatePopupMenu ( node );
+//    }
+//    break;
+//    case eEditorToScene_PropertyChange:
+//    {
+//        String objName = event.mArgs[0];
+//        GNode* node = GetNodeByName ( objName );
+//        if ( node )
+//            node->OnPropertyChange ( event.mExtraData0, event.mExtraData1 );
+//    }
+//    break;
+//    case eEditorToScene_ComponentAttach:
+//    {
+//        String objName = event.mArgs[0];
+//        String componenttype = event.mArgs[1];
+//        GNode* node = GetNodeByName ( objName );
+//        if ( node )
+//        {
+//            node->AttachComponent ( componenttype );
+//        }
+//    }
+//    break;
+//    case eEditorToScene_ComponentDettach:
+//    {
+//        String objName = event.mArgs[0];
+//        String componenttype = event.mArgs[1];
+//        GNode* node = GetNodeByName ( objName );
+//        if ( node )
+//        {
+//            node->DetachComponent ( componenttype );
+//        }
+//    }
+//    break;
+//    }
+//    return true;
+//}
 
 CSceneMachine::CSceneMachine()
 {

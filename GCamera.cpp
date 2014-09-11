@@ -102,7 +102,7 @@ void GCamera::GetInput ( DWORD frameTimeMs )
 
     GetTrans().MoveStep ( vMove.z / 120 * 5.0f );
 
-    if ( INPUTSYSTEM.IsPressingButton ( btRB ) )
+    if ( INPUTSYSTEM.IsPressingButton ( eButtonType_RightButton ) )
     {
         GetTrans().TrunStepLeftRightWithUp ( -vMove.x / 800.0f );
 

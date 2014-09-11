@@ -18,7 +18,6 @@
     <ClCompile Include="GRenderObject.cpp" />
     <ClCompile Include="GWorldCorrd.cpp" />
     <ClCompile Include="GSceneMgr.cpp" />
-    <ClCompile Include="GAnimMeshObj.cpp" />
     <ClCompile Include="GTrailEffect.cpp" />
     <ClCompile Include="GGameDemoHeader.cpp" />
     <ClCompile Include="GAmmo.cpp" />
@@ -35,11 +34,29 @@
     <ClCompile Include="GGame.cpp" />
     <ClCompile Include="GMeshBaseObj.cpp" />
     <ClCompile Include="GGameMap.cpp" />
-    <ClCompile Include="GComponentInterface.cpp" />
-    <ClCompile Include="GComponentTrans.cpp" />
-    <ClCompile Include="GComponentMesh.cpp" />
+    <ClCompile Include="GAnimationResource.cpp">
+      <Filter>Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="GAnimMeshObj.cpp">
+      <Filter>Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="GAllocateHierarchy.cpp">
+      <Filter>Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="GComponentBox.cpp">
+      <Filter>Component</Filter>
+    </ClCompile>
+    <ClCompile Include="GComponentInterface.cpp">
+      <Filter>Component</Filter>
+    </ClCompile>
+    <ClCompile Include="GComponentMesh.cpp">
+      <Filter>Component</Filter>
+    </ClCompile>
+    <ClCompile Include="GComponentTrans.cpp">
+      <Filter>Component</Filter>
+    </ClCompile>
     <ClCompile Include="GComponentFactory.cpp" />
-    <ClCompile Include="GComponentBox.cpp" />
+    <ClCompile Include="GObject.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EyeCliper.h" />
@@ -60,7 +77,6 @@
     <ClInclude Include="GRenderObject.h" />
     <ClInclude Include="GWorldCorrd.h" />
     <ClInclude Include="GSceneMgr.h" />
-    <ClInclude Include="GAnimMeshObj.h" />
     <ClInclude Include="GTrailEffect.h" />
     <ClInclude Include="GGameDemoHeader.h" />
     <ClInclude Include="GAmmo.h" />
@@ -77,11 +93,40 @@
     <ClInclude Include="GGame.h" />
     <ClInclude Include="GMeshBaseObj.h" />
     <ClInclude Include="GGameMap.h" />
-    <ClInclude Include="GComponentInterface.h" />
-    <ClInclude Include="GComponentTrans.h" />
     <ClInclude Include="GFactory.h" />
-    <ClInclude Include="GComponentMesh.h" />
+    <ClInclude Include="GAnimMeshObj.h">
+      <Filter>Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="GAllocateHierarchy.h">
+      <Filter>Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="GAnimationResource.h">
+      <Filter>Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="GComponentTrans.h">
+      <Filter>Component</Filter>
+    </ClInclude>
+    <ClInclude Include="GComponentBox.h">
+      <Filter>Component</Filter>
+    </ClInclude>
+    <ClInclude Include="GComponentInterface.h">
+      <Filter>Component</Filter>
+    </ClInclude>
+    <ClInclude Include="GComponentMesh.h">
+      <Filter>Component</Filter>
+    </ClInclude>
     <ClInclude Include="GComponentFactory.h" />
-    <ClInclude Include="GComponentBox.h" />
+    <ClInclude Include="GResourceManager.h">
+      <Filter>Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="GObject.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Animation">
+      <UniqueIdentifier>{249f32ff-c627-437e-b882-4b4395801d30}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Component">
+      <UniqueIdentifier>{2edb1787-a609-4ce7-b921-47f01164ad44}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>

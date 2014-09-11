@@ -1,8 +1,6 @@
 #pragma once
 
 #include "GComponentTrans.h"
-#include "GD9Device.h"
-#include "GD8Input.h"
 #include "GObject.h"
 #include "GFactory.h"
 
@@ -19,6 +17,8 @@ public:
 
     void LinkTo ( CXRapidxmlNode* parent );
     GNode* GetNodeByName ( const char* name );
+    virtual void Clear();
+    virtual bool ReCreate();
 public:
     virtual void RegisterAll();
     DWORD GetObjCount();					//获取所有创建的物体总数，包括已经销毁的对象
@@ -49,7 +49,8 @@ public:
 
     GComponentTrans& GetTrans() const;
     void UpdateTrans();
-	void OnComponentChange();
+    void OnComponentChange ( GComponentInterface* component, bool canDetach, bool notifyEditor );
+    virtual void OnPropertyChange ( void* pre, void* changed );
 protected:
     virtual void BeginRender();
     virtual void EndRender();
@@ -129,26 +130,23 @@ private:
     static DWORD __OBJCOUNTER;				//物体数目计数
 
 public:
-    inline const CChar* GetEditName() const
+
+    inline GComponentInterface* AttachComponent ( eComponentType type, bool canDetach = true, bool notifyEditor = true )
     {
-        return mNodeName.c_str();
+        GComponentInterface* component = mComponentOwner.AttachComponent ( type );
+        OnComponentChange ( component, canDetach , notifyEditor );
+        return component;
     }
-	inline GComponentInterface* AttachComponent ( eComponentType type )
-	{
-		GComponentInterface* component=mComponentOwner.AttachComponent ( type );
-		OnComponentChange();
-		return component;
-	}
-	inline GComponentInterface* AttachComponent ( const char* name )
+    inline GComponentInterface* AttachComponent ( const char* name, bool canDetach = true, bool notifyEditor = true )
     {
-		GComponentInterface* component=mComponentOwner.AttachComponent ( name );
-		OnComponentChange();
-		return component;
+        GComponentInterface* component = mComponentOwner.AttachComponent ( name );
+        OnComponentChange ( component, canDetach, notifyEditor );
+        return component;
     }
     inline void DetachComponent ( const char* name )
     {
         mComponentOwner.DetachComponent ( name );
-		OnComponentChange();
+        OnComponentChange ( 0, false, true );
     }
     inline GComponentOwner& GetComponentOwner()
     {

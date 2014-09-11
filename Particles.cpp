@@ -1,6 +1,7 @@
 #include "GGameDemoHeader.h"
 #include "Particles.h"
 #include "GTimer.h"
+#include "GD9Device.h"
 
 CRectMesh::CRectMesh( void )
 {

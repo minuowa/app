@@ -12,14 +12,18 @@ enum eComponentType
     eComponentType_Particles,
     eComponentType_Count,
 };
+class GNode;
 class GComponentInterface :
     public GObject
 {
 public:
     GComponentInterface ( void );
     virtual ~GComponentInterface ( void );
+	void SetTarget(GNode* target);
+	GNode* GetTarget() const;
 protected:
     eComponentType	mComponentType;
+	GNode*	mTarget;
     bool	mCanDetach;
 public:
 	inline eComponentType GetType()

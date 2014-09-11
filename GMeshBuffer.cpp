@@ -6,25 +6,25 @@
 #include "GSceneMgr.h"
 #include "GD9Device.h"
 //////////////////////////////////////////////////////////////////////////
-CXImpleteSingleton( GMeshManager );
-GMeshManager::GMeshManager( void )
+CXImpleteSingleton ( GMeshManager );
+GMeshManager::GMeshManager ( void )
 {
 }
 
-GMeshManager::~GMeshManager( void )
+GMeshManager::~GMeshManager ( void )
 {
 }
 
-GMeshBufferNode* GMeshManager::QueryCreate( const char* fileName )
+GMeshBufferNode* GMeshManager::QueryCreate ( const char* fileName )
 {
-	GMeshBufferNode* node=0;
-	if(!mMeshMap.Get(fileName,node))
-	{
-		node = CreateFormFile(fileName);
-		CXASSERT_RETURN_FALSE(node);
-		mMeshMap.Insert(fileName,node);
-	}
-	return node;
+    GMeshBufferNode* node = 0;
+    if ( !mMeshMap.Get ( fileName, node ) )
+    {
+        node = CreateFormFile ( fileName );
+        CXASSERT_RETURN_FALSE ( node );
+        mMeshMap.Insert ( fileName, node );
+    }
+    return node;
 }
 
 
@@ -81,49 +81,48 @@ bool GMeshManager::Init()
 //    }
 //	return pSelectObj;
 //}
-GMeshBufferNode* GMeshManager::CreateFormFile( const char* fileName )
+GMeshBufferNode* GMeshManager::CreateFormFile ( const char* fileName )
 {
-	HRESULT hr = S_FALSE;
+    HRESULT hr = S_FALSE;
 
-	LPD3DXBUFFER pAdj = NULL;
-	LPD3DXBUFFER pMat = NULL;
-	DWORD LnAttrNum=0;
+    LPD3DXBUFFER pAdj = NULL;
+    LPD3DXBUFFER pMat = NULL;
+    DWORD LnAttrNum = 0;
 
-	ID3DXMesh* rootMesh=0;
+    ID3DXMesh* rootMesh = 0;
 
-	hr = D3DXLoadMeshFromXA( fileName, 
-		D3DXMESH_MANAGED | D3DXMESH_32BIT, 
-		D9DEVICE->GetDvc(), &pAdj, &pMat, NULL, &LnAttrNum, &rootMesh );
+    hr = D3DXLoadMeshFromXA ( fileName,
+                              D3DXMESH_MANAGED | D3DXMESH_32BIT,
+                              D9DEVICE->GetDvc(), &pAdj, &pMat, NULL, &LnAttrNum, &rootMesh );
 
-	CXASSERT_RESULT_FALSE(hr);
+    CXASSERT_RESULT_FALSE ( hr );
 
-	GMeshBufferNode* node =new GMeshBufferNode;
-	node->mFileName = fileName;
-	node->mMesh=rootMesh;
-	node->SubSetCount(LnAttrNum);
+    GMeshBufferNode* node = new GMeshBufferNode;
+    node->mFileName = fileName;
+    node->mMesh = rootMesh;
+    node->SubSetCount ( LnAttrNum );
 
-	D3DXMATERIAL *pMatList = ( D3DXMATERIAL * )pMat->GetBufferPointer();
+    D3DXMATERIAL *pMatList = ( D3DXMATERIAL * ) pMat->GetBufferPointer();
 
-	for ( DWORD i = 0; i < LnAttrNum; i++ )
-	{
-		GMetrialData* metrialData = new GMetrialData;
+    for ( DWORD i = 0; i < LnAttrNum; i++ )
+    {
+        GMetrialData* metrialData = new GMetrialData;
 
-		metrialData->SetMetiral(pMatList[i].MatD3D);
-		CXPath path(fileName);
-		CharString textureName;
-		CXASSERT(path.GetPath(textureName));
+        metrialData->SetMetiral ( pMatList[i].MatD3D );
+        CXFileName path ( fileName );
+        String textureName = path.GetRelativePath();
 
-		if ( pMatList[i].pTextureFilename != NULL )
-		{
-			textureName.append(pMatList[i].pTextureFilename );
-			metrialData->SetTexture(textureName);
-		}
-	}
-	return node;
+        if ( pMatList[i].pTextureFilename != NULL )
+        {
+            textureName.append ( pMatList[i].pTextureFilename );
+            metrialData->SetTexture ( textureName );
+        }
+    }
+    return node;
 }
 
 
-HRESULT GMeshBufferNode::LoadFromFile( int nID )
+HRESULT GMeshBufferNode::LoadFromFile ( int nID )
 {
     return S_OK;
 }
@@ -137,19 +136,19 @@ GMeshBufferNode::GMeshBufferNode()
 
 bool GMeshBufferNode::Render()
 {
-	CXASSERT_RESULT_FALSE(mRenderData.size()==mSubSetCount);
-	CXASSERT_RETURN_FALSE(mMesh);
+    CXASSERT_RESULT_FALSE ( mRenderData.size() == mSubSetCount );
+    CXASSERT_RETURN_FALSE ( mMesh );
 
-	for (int i=0;i<mSubSetCount;++i)
-	{
-		GMetrialData* renderData = mRenderData[i];
-		renderData->Render();
-		mMesh->DrawSubset(i);
-	}
-	return true;
+    for ( int i = 0; i < mSubSetCount; ++i )
+    {
+        GMetrialData* renderData = mRenderData[i];
+        renderData->Render();
+        mMesh->DrawSubset ( i );
+    }
+    return true;
 }
 
-HRESULT GMeshBufferNode::MakeLod( DWORD* pAdj )
+HRESULT GMeshBufferNode::MakeLod ( DWORD* pAdj )
 {
-	return S_OK;
+    return S_OK;
 }

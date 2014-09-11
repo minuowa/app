@@ -5,6 +5,7 @@
 #include "GBound.h"
 #include "GTimer.h"
 #include "GGame.h"
+#include "EEditorSheetManager.h"
 
 
 
@@ -188,7 +189,13 @@ GNode::GNode()
 
     D3DXMatrixIdentity ( &_matWorld );							//物体的世界矩阵
 
-    mComponentOwner.AttachComponent ( eComponentType_Trans )->SetCanDetach(false);
+    if ( TheEditor )
+    {
+        AddWatcher ( TheEditor );
+        AddWatcher ( TheSceneMgr );
+    }
+
+    AttachComponent ( eComponentType_Trans, false,false );
 }
 
 GNode::~GNode()
@@ -400,12 +407,12 @@ GNode* GNode::AddChild ( GNode* c )
 {
     CXASSERT_RETURN_FALSE ( c );
     mChildren.push_back ( c );
-
+    c->mParent = this;
     EditorEvent event;
     event.mType = eSceneToEditor_Add;
-    event.mArgs.push_back ( c->GetEditName() );
-    event.mArgs.push_back ( GetEditName() );
-    SendEditorEvent ( event );
+    event.mArgs.push_back ( c->GetObjectName() );
+    event.mArgs.push_back ( GetObjectName() );
+    Notify ( event );
 
     return c;
 }
@@ -485,25 +492,76 @@ int GNode::GetObjID() const
 void GNode::RegisterAll()
 {
     __super::RegisterAll();
-    RegisterProperty ( &GetTrans() );
+    for ( int i = 0; i < eComponentType_Count; ++i )
+    {
+        GComponentInterface* component = mComponentOwner.GetComponent ( eComponentType ( i ) );
+        if ( component )
+            RegisterProperty ( component );
+    }
 }
-
+#define XML_OBJ_NODE_NULL	""
+#define XML_OBJ_NODE_NAME		"Object"
+#define XML_OBJ_NODE_TYPE		"Type"
+#define XML_OBJ_NODE_PARENT		"Parent"
+#define XML_OBJ_NODE_PROP		"Property"
+#define XML_OBJ_NODE_PROP_NAME	"Name"
+#define XML_OBJ_NODE_PROP_VALUE "Value"
+#define XML_OBJ_NODE_CATEGORY	"Category"
 void GNode::LinkTo ( CXRapidxmlNode* parent )
 {
     CXASSERT_RETURN ( parent );
     if ( !IsRegisterAll() )
         RegisterAll();
-
+    //<Object Type="GNode" Name="" ParentName="">
     CXRapidxmlNode* me = parent->document()->allocate_node ( rapidxml::node_element );
+    me->name ( XML_OBJ_NODE_NAME );
+    CXRapidxmlAttr* attrType = parent->document()->allocate_attribute ( XML_OBJ_NODE_TYPE );
+    CXRapidxmlAttr* attrParent = parent->document()->allocate_attribute ( XML_OBJ_NODE_PARENT );
+    attrType->value ( CategoryName() );
+    attrParent->value ( mParent ? mParent->GetObjectName() : XML_OBJ_NODE_NULL );
+    me->append_attribute ( attrType );
+    me->append_attribute ( attrParent );
+
     parent->append_node ( me );
-    MakeXMLNode ( *me );
+
+    const CategoryPropertyMap& otherPropMap = GetPropertyMap();
+    CategoryPropertyMap::const_iterator ibegin = otherPropMap.begin();
+    CategoryPropertyMap::const_iterator iend = otherPropMap.end();
+    for ( ; ibegin != iend; ++ibegin )
+    {
+        CXRapidxmlNode* category = parent->document()->allocate_node ( rapidxml::node_element );
+        category->name ( XML_OBJ_NODE_CATEGORY );
+        CXRapidxmlAttr* categoryName = parent->document()->allocate_attribute ( XML_OBJ_NODE_TYPE );
+        categoryName->value ( ibegin->first.c_str() );
+        category->append_attribute ( categoryName );
+        me->append_node ( category );
+
+        std::string spropvalue;
+        const PropertyMap* propMap = ibegin->second;
+        for ( PropertyMap::const_iterator walk = propMap->begin();
+                walk != propMap->end(); ++walk )
+        {
+            EPropertyVar* evar = walk->second;
+            evar->ToString ( spropvalue );
+            CXRapidxmlNode* prop = parent->document()->allocate_node ( rapidxml::node_element );
+            prop->name ( XML_OBJ_NODE_PROP );
+            CXRapidxmlAttr* propName = parent->document()->allocate_attribute ( XML_OBJ_NODE_PROP_NAME );
+            CXRapidxmlAttr* propValue = parent->document()->allocate_attribute ( XML_OBJ_NODE_PROP_VALUE );
+            propName->value ( parent->document()->allocate_string ( walk->first.c_str() ) );
+            propValue->value ( parent->document()->allocate_string ( spropvalue.c_str() ) );
+            prop->append_attribute ( propName );
+            prop->append_attribute ( propValue );
+
+            category->append_node ( prop );
+        }
+    }
 
     GNodeArr::iterator iBegin = mChildren.begin();
     GNodeArr::iterator iEnd = mChildren.end();
     for ( ; iBegin != iEnd; ++iBegin )
     {
         GNode* n = *iBegin;
-        n->LinkTo ( me );
+        n->LinkTo ( parent );
     }
 }
 
@@ -880,3 +938,46 @@ void GNode::UpdateTrans()
         SetDir ( pIntersectFinalHit->vNormal );
     }
 }
+
+void GNode::OnComponentChange ( GComponentInterface* component,  bool canDetach , bool notifyEditor )
+{
+    if ( component )
+    {
+        component->SetTarget ( this );
+        component->SetCanDetach ( canDetach );
+    }
+    if ( notifyEditor )
+    {
+        UnRegisterAll();
+        RegisterAll();
+
+        EditorEvent event;
+        event.mType = eEditorToSecne_Select;
+        event.mArgs.push_back ( mNodeName );
+        Notify ( event );
+    }
+}
+
+void GNode::OnPropertyChange ( void* pre, void* changed )
+{
+    __super::OnPropertyChange ( pre, changed );
+    for ( int i = 0; i < eComponentType_Count; ++i )
+    {
+        if ( mComponentOwner.GetComponent ( eComponentType ( i ) ) )
+        {
+            mComponentOwner.GetComponent ( eComponentType ( i ) )->OnPropertyChange ( pre, changed );
+        }
+    }
+}
+
+bool GNode::ReCreate()
+{
+    Clear();
+    return true;
+}
+
+void GNode::Clear()
+{
+
+}
+

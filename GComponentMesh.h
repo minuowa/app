@@ -9,11 +9,11 @@ public:
 	~GComponentMesh(void);
 
 	virtual void RegisterAll();
-
+	virtual void OnPropertyChange(void* pre,void* changed);
 protected:
-	CharString mMeshFile;
+	String mMeshFile;
 public:
-	inline const CharString& MeshFile() const 
+	inline const String& MeshFile() const 
 	{
 		return mMeshFile; 
 	}

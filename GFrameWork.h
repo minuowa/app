@@ -1,7 +1,7 @@
 #pragma once
 
 
-class GFrameWork
+class GFrameWork:public CXCallBack
 {
 public:
     GFrameWork(void);
@@ -11,6 +11,7 @@ public:
 	bool IsActive() const;
     virtual bool InitBase(HWND mainWnd);//初始化游戏  
 	HWND GetMainWin() const { return mMainWin; }
+	void resize(int w,int h);
 public:
     HWND mMainWin;//主窗口句柄
 	HINSTANCE mInst;//Game进程 

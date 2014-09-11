@@ -1,6 +1,7 @@
 #include "GGameDemoHeader.h"
 #include "XTerrain.h"
 #include "XTerrainNode.h"
+#include "GD9Device.h"
 
 
 CXTerrain::CXTerrain(void)

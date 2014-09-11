@@ -4,38 +4,42 @@
 #include "XSingleton.h"
 
 #define DI_BUTTONNULL 0
-#define DI_BUTTONTRUE 1 
-#define DI_BUTTONUP 3	   
+#define DI_BUTTONTRUE 1
+#define DI_BUTTONUP 3
 #define DI_BUTTONDOWN 5
 #define DI_BUTTONCLICK 11
 #define DI_BUTTONDBCLICK 27
 
-enum ButtonType
+enum eButtonType
 {
-    btLB,btRB,btMB
+    eButtonType_LeftButton, 
+	eButtonType_RightButton,
+	eButtonType_MiddleButton,
+	eButtonType_Count,
 };
-
+class GD9Device;
 class GD8Input
 {
-	CXDeclareSingleton(GD8Input);
 public:
-    GD8Input(void);
-	~GD8Input(void);
-	void Reset();
-	/////×´Ì¬
+	enum {KEY_COUNT=256,};
+
+	GD8Input ( void );
+    ~GD8Input ( void );
+    void Reset();
+    /////×´Ì¬
     //bool IsKeyDown(byte key);
-    bool IskeyUp(byte key);
-    bool IsPressKey(byte key);
+    bool IskeyUp ( byte key );
+    bool IsPressKey ( byte key );
     //bool IsPressing(byte key);
 
- 
+
     ////////¶¯×÷
-    bool IsPressingButton(ButtonType bt);
-	byte GetButtonAction(ButtonType bt) const;
-    byte GetKeyAction(int key);
-	bool IsLeftButtonUp() const;
-	bool IsMiddleButtonUp() const;
-	bool IsRightButtonUp() const;
+    bool IsPressingButton ( eButtonType bt );
+    byte GetButtonAction ( eButtonType bt ) const;
+    byte GetKeyAction ( int key );
+    bool IsLeftButtonUp() const;
+    bool IsMiddleButtonUp() const;
+    bool IsRightButtonUp() const;
 
     //////////////////////////////////////////////////////////////////////////
     /////Î»ÖÃ
@@ -45,27 +49,28 @@ public:
     D3DVECTOR GetMouseMoveEX();
     int GetMouseWheel();
 
-    void FreezeMouse(bool bFreeze);
+    void FreezeMouse ( bool bFreeze );
     void Update();
-	void Active(bool active);
-	HRESULT Init(HINSTANCE hInst,HWND hWin);
+    void Active ( bool active );
+    bool Init ( const GD9Device& device, HINSTANCE hInst, HWND hWin );
 private:
-	void UpdateState();
+    void UpdateState();
 
-    HINSTANCE mInst;
-    HWND mHwin;
+    HINSTANCE mInstance;
+    HWND mWinID;
     LPDIRECTINPUT8 mDI;
     LPDIRECTINPUTDEVICE8 mKboard;
     LPDIRECTINPUTDEVICE8 mMouse;
 
-    BYTE mKeyData[256];
     DIMOUSESTATE mMouseData;
-    POINT mPosNowMouse;
-    bool mIsFreeze;
-    byte mOldMouseButtonState[3];
-    byte mMouseButtonState[3];//0×ó¼ü£¬1ÓÒ¼ü£¬2ÖÐ¼ü
-    byte mKBoardState[256],mOldKBoardState[256];
-	bool mActive;
-	bool mNeedClearMouseMoveDelta;
+    POINT mCurMousePositon;
+    byte mMouseButtonStateOld[eButtonType_Count];
+    byte mMouseButtonState[eButtonType_Count];//0×ó¼ü£¬1ÓÒ¼ü£¬2ÖÐ¼ü
+    byte mKBoardState[KEY_COUNT];
+    byte mKBoardStateOld[KEY_COUNT];
+	BYTE mKeyData[KEY_COUNT];
+    bool mActive;
+    bool mNeedClearMouseMoveDelta;
 };
-#define INPUTSYSTEM GD8Input::GetSingleton() 
+typedef CXSingleton<GD8Input> GSingletonD8Input;
+#define	INPUTSYSTEM GSingletonD8Input::GetSingleton()

@@ -41,10 +41,10 @@ class GMeshBufferNode
 		void Mesh(ID3DXMesh* val) { mMesh = val; }
 		WORD			mSubSetCount;
 		GRenderDataArr	mRenderData;
-		CharString		mFileName;
+		String		mFileName;
 };
 
-typedef CXMap<CharString,GMeshBufferNode*> GMeshBufferNodeMap;
+typedef CXMap<String,GMeshBufferNode*> GMeshBufferNodeMap;
 class GMeshManager
 {
         CXDeclareSingleton( GMeshManager );

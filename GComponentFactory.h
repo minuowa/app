@@ -12,7 +12,7 @@ public:
         ObjCrator mCreator;
     };
 
-    typedef CXMap<CharString, ComponentCreator*> ComponentCreatorMap;
+    typedef CXMap<String, ComponentCreator*> ComponentCreatorMap;
 	~GComponentFactory();
 public:
     void RegisterCreator ( const char* typeName, int type, ObjCrator creator );

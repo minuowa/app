@@ -2,7 +2,6 @@
 #include "GGame.h"
 #include "XString.h"
 #include <locale.h>
-#include "EEditorSheetManager.h"
 #include "XEvent.h"
 
 /******************************************************************/
@@ -15,7 +14,6 @@ GGame::GGame ( void )
     : mSceneMgr ( NULL )
     , mpSelectObj ( NULL )
     , mpSelectAnim ( NULL )
-    , mEditor ( 0 )
     , mFinished ( false )
 {
 }
@@ -99,11 +97,11 @@ void GGame::GetInput()
         if ( pMeshBaseObj != NULL )
         {
             mpSelectObj = pMeshBaseObj;
-            if ( mEditor )
-            {
-				CXASSERT(0);
-                //mEditor->SetObject ( pMeshBaseObj );
-            }
+    //        if ( mEditor )
+    //        {
+				//CXASSERT(0);
+    //            //mEditor->SetObject ( pMeshBaseObj );
+    //        }
         }
 
         if ( mpSelectObj != NULL )
@@ -276,12 +274,11 @@ void GGame::Render( )
 
 }
 
-bool GGame::InitBase ( HWND mainWnd, EEditorManager* editor/*=0*/ )
+bool GGame::InitBase ( HWND mainWnd )
 {
     //setlocale( LC_ALL, "zh_CN.UTF-8" );
 
     //初始化大概500ms
-    mEditor = editor;
     HRESULT hr = NULL;
 
     bool bSuccess = false;
@@ -297,31 +294,23 @@ bool GGame::InitBase ( HWND mainWnd, EEditorManager* editor/*=0*/ )
 
     //初始化框架
     CXASSERT_RETURN_FALSE ( __super::InitBase ( mainWnd ) );
-    if ( mEditor )
-    {
-        mEditor->SetWndProc ( ( void* ) WndProc );
-    }
+    //if ( mEditor )
+    //{
+    //    mEditor->SetWndProc ( ( void* ) WndProc );
+    //}
     //初始化D3D设备
-    CXASSERT_RETURN_FALSE ( D9DEVICE->Init ( mMainWin ) );
-
-
-    //初始化Input
-    hr = INPUTSYSTEM.Init ( mInst, mMainWin );
-
-    if ( FAILED ( hr ) )
-        return false;
-
-    ////初始化UI
-    //mpUIMgr = new CUIManger;
-
-    //if ( !mpUIMgr->Init() )
-    //    return false;
-
+	CXASSERT_RETURN_FALSE ( 
+		GSingletonD9Device::GetSingletonPtr()->Init ( mMainWin )
+		);
+    CXASSERT_RETURN_FALSE ( 
+		GSingletonD8Input::GetSingleton().Init(GSingletonD9Device::GetSingleton(),
+		mInst, mMainWin )
+		);
 
     //初始化场景管理器
     mSceneMgr = new GSceneMgr;
 
-    bSuccess = mSceneMgr->Init ( D9DEVICE );
+    bSuccess = mSceneMgr->Init ( GSingletonD9Device::GetSingleton() );
 
     if ( !bSuccess )
         return false;
@@ -498,8 +487,5 @@ void GGame::Finish()
     mFinished = true;
 }
 
-EEditorManager* GGame::GetEditor() const
-{
-    return mEditor;
-}
+
 

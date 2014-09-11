@@ -60,17 +60,21 @@
 
 #define RAND rand()
 
-#define SAFERELEASE(p) if(p!=NULL) { p->Release(); p=NULL;} 
+#define SAFERELEASE(p) if(p!=NULL) { p->Release(); p=NULL;}
 
 #define SAFED_ELETE(p) if(p!=NULL) { delete p; p=NULL;}
 
 #define SAFE_DELETE_ARRAY(p) { if(p!=NULL) { delete[] (p);   (p)=NULL; } }
 
-inline void Toggle(bool b)
+inline void Toggle ( bool b )
 {
-	b=!b;
+    b = !b;
 }
-
+template<typename T1, typename T2>
+void CXCast ( T1& dst, T2* src )
+{
+    dst = * ( ( T1* ) src );
+}
 
 //游戏中定义参数
 
@@ -123,84 +127,84 @@ inline void Toggle(bool b)
 
 enum TextPos
 {
-	tpCenter,
-	tpLeft,
-	tpRight,
+    tpCenter,
+    tpLeft,
+    tpRight,
 };
 
 //模型的类型，决定模型的创建方式
 enum eMeshType
 {
-	mtMap,	//地图类型的，如地图、海面
+    mtMap,	//地图类型的，如地图、海面
 
-	mtXFile,	//从X文件中加载的模型
+    mtXFile,	//从X文件中加载的模型
 
 };
 
 struct MapObjInfo
 {
-	int nObjId;		//对象ID
-	float x;		//坐标的X值
-	float z;		//坐标的Z值
+    int nObjId;		//对象ID
+    float x;		//坐标的X值
+    float z;		//坐标的Z值
 
-	float fBlockHeight;
-	D3DXVECTOR3 vMin;
-	D3DXVECTOR3 vMax;
+    float fBlockHeight;
+    D3DXVECTOR3 vMin;
+    D3DXVECTOR3 vMax;
 };
 
 enum eForceType
 {
-	ftUpAlways,			//上方向总是（0,1,0）
-	ftUpWithMap,		//上方向与地面垂直，随地图而改变
+    ftUpAlways,			//上方向总是（0,1,0）
+    ftUpWithMap,		//上方向与地面垂直，随地图而改变
 };
 //////////////////////////引擎文件常用的函数////////////////////////////////////
 
-D3DVECTOR Vector(float x,float y,float z);
+D3DVECTOR Vector ( float x, float y, float z );
 
 //输出错误时Debug信息
-void DebugMsgBox(HRESULT hr,const char *StrDebug);
+void DebugMsgBox ( HRESULT hr, const char *StrDebug );
 
 //给Mesh设置法线
-ID3DXMesh *SetNormal(ID3DXMesh *pMesh,IDirect3DDevice9 *DVC);
+ID3DXMesh *SetNormal ( ID3DXMesh *pMesh, IDirect3DDevice9 *DVC );
 
 //获取子字符串个数
-int GetSubCharCount(char* Sourc,char* Dev);
+int GetSubCharCount ( char* Sourc, char* Dev );
 
 //获取指定位置的子字符串
-int GetSubString(char* Sourc,char* Dev,int Index,char*sOut);
+int GetSubString ( char* Sourc, char* Dev, int Index, char*sOut );
 
 //获取指定位置的子字符
-int GetSubCharIndexByCount(char* Sourc,char* Dev,int Count);
+int GetSubCharIndexByCount ( char* Sourc, char* Dev, int Count );
 
 //从文件名字中获取路径
-void  GetFilePath( char* sFileName,char* path );
+void  GetFilePath ( char* sFileName, char* path );
 
 //连接路径和文件名，获取文件全名
-void GetFileName(char *sPathName,char* sFileName);
+void GetFileName ( char *sPathName, char* sFileName );
 
 //判断字符串是否存在，是否是空值
-bool IsStrEmpty(char * str);
+bool IsStrEmpty ( char * str );
 
 //生成指定范围的整数随机数
-int RandIntEx(int nMin,int nMax);
+int RandIntEx ( int nMin, int nMax );
 
 //生成指定范围的浮点随机数
-float RandFloatEx(float fMin,float fMax);
+float RandFloatEx ( float fMin, float fMax );
 
 //给生成随机数赋予种子
 void PreRandom();
 
 //判断文件是否存在
-bool IsFileExist(char * sFileName);
+bool IsFileExist ( char * sFileName );
 
 //将一个字符串转换成D3DXVECTOR3
-D3DXVECTOR3 StrToVector3(char *str);	//将一个含三维向量的字符串的值取出来
+D3DXVECTOR3 StrToVector3 ( char *str );	//将一个含三维向量的字符串的值取出来
 
 //判断点是否在一个矩形区域中
-bool IsPointInRect(POINT pt,RECT *rc);
+bool IsPointInRect ( POINT pt, RECT *rc );
 
 //获取包围球半径
-bool GetBoundRadius(ID3DXMesh *pMesh,float *pfRadiusOut);
+bool GetBoundRadius ( ID3DXMesh *pMesh, float *pfRadiusOut );
 
 #define FiDeclareSingleton( ClassName ) \
 	private:\
@@ -214,23 +218,23 @@ bool GetBoundRadius(ID3DXMesh *pMesh,float *pfRadiusOut);
 	static bool bInit = false;\
 	CXASSERT(!bInit && "not a singleton");\
 	bInit = true;\
-
+ 
 enum eHitType
 {
-	htNull,							//什么都没有撞到
-	htAutoMoveHitNoMap,				//没有撞到
-	htAutoMoveHitNoObj,				//没有撞到物体
-	htAutoMoveHitMap,				//撞到地图了
-	htAutoMoveHitObj,				//撞到物体了
-	//htAutoMoveHitObjAndMap,		//都撞到了
+    htNull,							//什么都没有撞到
+    htAutoMoveHitNoMap,				//没有撞到
+    htAutoMoveHitNoObj,				//没有撞到物体
+    htAutoMoveHitMap,				//撞到地图了
+    htAutoMoveHitObj,				//撞到物体了
+    //htAutoMoveHitObjAndMap,		//都撞到了
 
-	htNotAutoMoveHitNoMap,			//没有撞到
-	htNotAutoMoveHitMap,			//撞到地图
-	htNotAutoMoveHitObj,			//撞到物体
-	htNotAutoMoveHitNoObj,			//没有撞到物体
+    htNotAutoMoveHitNoMap,			//没有撞到
+    htNotAutoMoveHitMap,			//撞到地图
+    htNotAutoMoveHitObj,			//撞到物体
+    htNotAutoMoveHitNoObj,			//没有撞到物体
 
-	htNotAutoMoveHitBelowMap,		//撞到下面的物体了
-	htNotAutoMoveHitNoBelowMap,		//没有撞到下面的物体
+    htNotAutoMoveHitBelowMap,		//撞到下面的物体了
+    htNotAutoMoveHitNoBelowMap,		//没有撞到下面的物体
 
 };
 
@@ -238,11 +242,11 @@ enum eHitType
 //对象类型，创建时决定了
 enum eObjType
 {
-	Obj,
-	WorldObj,
-	VisObj,
-	MeshObj,
-	AnimMeshObj,
+    Obj,
+    WorldObj,
+    VisObj,
+    MeshObj,
+    AnimMeshObj,
 };
 
 #define UpdateWithMap 1
@@ -262,72 +266,72 @@ enum eObjType
 
 enum eObjAnimState			//对象的状态
 {
-	oasNULL,
-	oasStandBy,
-	oasMoving,
-	oasTurning,
-	oasDead,
-	oasAttack,
-	oasBeAttack,
-	oasRunAttack,
+    oasNULL,
+    oasStandBy,
+    oasMoving,
+    oasTurning,
+    oasDead,
+    oasAttack,
+    oasBeAttack,
+    oasRunAttack,
 };
 
 
 
 enum eObjParentType
 {
-	optByPosition,
-	optByName,
+    optByPosition,
+    optByName,
 };
 
 struct ForceMapPara
 {
-	void *pMap;
+    void *pMap;
 
-	float fForceHeight;
+    float fForceHeight;
 
-	eForceType ft;
+    eForceType ft;
 
-	ForceMapPara( void *Map, float fHeight, eForceType ForceType )
-	{
-		pMap = Map;
+    ForceMapPara ( void *Map, float fHeight, eForceType ForceType )
+    {
+        pMap = Map;
 
-		fForceHeight = fHeight;
+        fForceHeight = fHeight;
 
-		ft = ForceType;
-	}
+        ft = ForceType;
+    }
 
 };
 
 enum eMeshUsage
 {
-	muRender,
-	muInsect,
+    muRender,
+    muInsect,
 };
 
 struct MeshPara
 {
 public:
 
-	int	  LnID;				//模型的ID
-	float mfCellWidth;	    //地图中格子宽度
-	float mfMaxHeight;	    //地图的最大高度
-	int	  LnCellCount;	    //地图中格子数量
-	char* mstrFileName;     //纹理文件名字，X文件名字
-	char* mstrHeightMap;    //高度图文件名字
+    int	  LnID;				//模型的ID
+    float mfCellWidth;	    //地图中格子宽度
+    float mfMaxHeight;	    //地图的最大高度
+    int	  LnCellCount;	    //地图中格子数量
+    char* mstrFileName;     //纹理文件名字，X文件名字
+    char* mstrHeightMap;    //高度图文件名字
 
 public:
-	MeshPara() {};
+    MeshPara() {};
 
-	MeshPara( int nID, float CellWidth, float MaxHight, int CellCount, char *strFileName, char *strHeightMap )
-	{
-		LnID = nID;
-		mfCellWidth = CellWidth;
-		mfMaxHeight = MaxHight;
-		LnCellCount = CellCount;
-		mstrFileName = strFileName;
-		mstrHeightMap = strHeightMap;
-	}
+    MeshPara ( int nID, float CellWidth, float MaxHight, int CellCount, char *strFileName, char *strHeightMap )
+    {
+        LnID = nID;
+        mfCellWidth = CellWidth;
+        mfMaxHeight = MaxHight;
+        LnCellCount = CellCount;
+        mstrFileName = strFileName;
+        mstrHeightMap = strHeightMap;
+    }
 };
 typedef void* GHandle;
 extern const char* GetMediaPath();

@@ -1,6 +1,6 @@
 #pragma once
 #include "XString.h"
-#include "GAnimMeshObj.h"
+#include "GAnimationResource.h"
 class FiGraph
 {
 	virtual void Update(){}
@@ -20,11 +20,11 @@ public:
 public:
 	void Generate(D3DXMATRIX* v1,D3DXMATRIX*v2);
 
-	CharString mLinkerName1;
-	CharString mLinkerName2;
+	String mLinkerName1;
+	String mLinkerName2;
 
-	FiLinker* mLinker1;
-	FiLinker* mLinker2;
+	GBoneLinker* mLinker1;
+	GBoneLinker* mLinker2;
 
 	D3DXMATRIX mLastMat1;
 	D3DXMATRIX mLastMat2;

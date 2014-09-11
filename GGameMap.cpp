@@ -1,6 +1,7 @@
 #include "GGameDemoHeader.h"
 #include "GGameMap.h"
 #include "GMeshBuffer.h"
+#include "GD9Device.h"
 
 GGameMap::GGameMap( void )
     : _pTexture( 0 )

@@ -17,11 +17,8 @@
 #include "GCamera.h"
 #include "GSceneMgr.h"
 #include "XMultiThread.h"
-#include "EditorSheetBase.h"
-
 
 extern DWORD WINAPI LoadObj(LPVOID pParam);
-class EEditorManager;
 class GGame:public GFrameWork
 {
 public:
@@ -31,7 +28,7 @@ public:
     GGame(void);
     ~GGame(void);
 
-	virtual bool InitBase(HWND mainWnd,EEditorManager* editor=0);
+	virtual bool InitBase(HWND mainWnd);
 
     virtual void Loop();
 
@@ -42,7 +39,6 @@ public:
 
 	GSceneMgr* GetSceneMgr( ) { return mSceneMgr;}
 
-	EEditorManager*	GetEditor() const;
 private:
 
     void GetInput();
@@ -57,7 +53,6 @@ public:
 
 	GSceneMgr *mSceneMgr;
 
-
 	GMeshBaseObj *mpSelectObj;
 
 	GAnimMeshObj *mpSelectAnim;
@@ -69,10 +64,7 @@ private:
 	void RenderEye(float fPass);
 
 	bool	mFinished;
-
-	EEditorManager* mEditor;
 };
 
 #define TheGame GGame::GetSingletonPtr() 
 #define TheSceneMgr GGame::GetSingleton().GetSceneMgr()
-#define TheEditor GGame::GetSingleton().GetEditor()

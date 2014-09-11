@@ -13,7 +13,7 @@ public:
 		return mD3DTexture;
 	}
 public:
-	CharString			FileName;
+	String			FileName;
 protected:
 	IDirect3DTexture9*	mD3DTexture;
 };
@@ -35,7 +35,7 @@ protected:
 //        int LnCount;    //纹理图片的数量，与材质数量对应
 //
 //};
-typedef CXMap<CharString,GTexture*> GTextureMap;
+typedef CXMap<String,GTexture*> GTextureMap;
 class GTextureBuffer
 {
 	CXDeclareSingleton(GTextureBuffer);

@@ -7,10 +7,9 @@
 //#define FiGameDemo_API __declspec(dllimport)
 //#endif
 #define FiGameDemo_API
-#include "EEditorSheetManager.h"
 extern "C"
 {
-	FiGameDemo_API int FiGameDemo_Init(HWND mainWnd,EEditorManager* ptopertySheet);
+	FiGameDemo_API int FiGameDemo_Init(HWND mainWnd);
 	FiGameDemo_API void FiGameDemo_Update();
 	FiGameDemo_API void FiGameDemo_ShutDown();
 }
