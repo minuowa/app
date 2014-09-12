@@ -206,12 +206,6 @@
     <ClInclude Include="XText.h" />
     <ClInclude Include="GTimer.h" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\CXBase\CXBase.vcxproj">
-      <Project>{f6805e43-5b55-4b38-a1ff-00e3244e5d9c}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

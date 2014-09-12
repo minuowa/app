@@ -18,6 +18,8 @@ GCamera::GCamera ( void )
     matProj = NORMALMATRIX;
 
     matView = NORMALMATRIX;
+
+	D9DEVICE->mOnResstDevice+=this;
 }
 
 GCamera::~GCamera ( void )
@@ -168,6 +170,14 @@ void GCamera::Update()
     __super::Update();
     if ( mpEyeCliper )
         mpEyeCliper->Update ( & ( GetWorldMatrix ( false ) ) );
+}
+
+void GCamera::onCallBack( const CXDelegate& delgate )
+{
+	if (delgate==D9DEVICE->mOnResstDevice)
+	{
+		SetProj();
+	}
 }
 
 

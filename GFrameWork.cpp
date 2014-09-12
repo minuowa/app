@@ -18,7 +18,7 @@ GFrameWork::~GFrameWork ( void )
 }
 
 
-bool GFrameWork::InitBase ( HWND mainWnd )
+bool GFrameWork::initBase ( HWND mainWnd )
 {
     mInst = GetModuleHandle ( NULL );
 	DWORD errorCode=0;
@@ -77,14 +77,14 @@ bool GFrameWork::InitBase ( HWND mainWnd )
 
 }
 
-void GFrameWork::Active ( bool active )
+void GFrameWork::active ( bool active )
 {
     mIsActive = active;
 
     GSingletonD8Input::GetSingleton().Active ( active );
 }
 
-bool GFrameWork::IsActive() const
+bool GFrameWork::isActive() const
 {
     return mIsActive;
 }
@@ -110,11 +110,11 @@ LRESULT CALLBACK WndProc ( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
         break;
     case WM_KILLFOCUS:
     case WA_INACTIVE:
-        TheGame->Active ( false );
+        TheGame->active ( false );
         break;
     case WM_SETFOCUS:
     case WM_ACTIVATE:
-        TheGame->Active ( true );
+        TheGame->active ( true );
         break;
     case WM_DESTROY:
         PostQuitMessage(0);

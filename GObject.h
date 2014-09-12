@@ -22,7 +22,7 @@ struct  EPropertyVar
 };
 typedef CXMap<EPropertyString, EPropertyVar*> PropertyMap;
 typedef CXMap<EPropertyString, PropertyMap*> CategoryPropertyMap;
-class GObject/*:public Actor*/
+class GObject:public CXCallBack
 {
     DeclareCategoryName ( GObject );
 public:

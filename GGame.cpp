@@ -97,11 +97,11 @@ void GGame::GetInput()
         if ( pMeshBaseObj != NULL )
         {
             mpSelectObj = pMeshBaseObj;
-    //        if ( mEditor )
-    //        {
-				//CXASSERT(0);
-    //            //mEditor->SetObject ( pMeshBaseObj );
-    //        }
+            //        if ( mEditor )
+            //        {
+            //CXASSERT(0);
+            //            //mEditor->SetObject ( pMeshBaseObj );
+            //        }
         }
 
         if ( mpSelectObj != NULL )
@@ -210,7 +210,6 @@ void GGame::Update( )
         //DWORD FillMode = 0;
         //D9DEVICE->GetDvc()->GetRenderState( D3DRS_FILLMODE, &FillMode );
         //D9DEVICE->GetDvc()->SetRenderState( D3DRS_FILLMODE, FillMode == D3DFILL_WIREFRAME ? D3DFILL_SOLID : D3DFILL_WIREFRAME );
-
     }
 
 
@@ -243,38 +242,52 @@ void GGame::Render( )
     eGameScene gs = mSceneMgr->mSceneMachine.GetNowScene();
 
     mSceneMgr->SetView();
-
-    D9DEVICE->BeginRender();
-
-    switch ( gs )
+    switch ( D9DEVICE->TestDevice() )
     {
-
-    case gsLoading:
-
-        //mpUIMgr->RenderLoading( fPass );
-
+    case D3D_OK:
+    case D3DERR_DEVICELOST:
         break;
-
-    case  gsGame:
-
-        GameRender ( fPass );
-
-        break;
-
-    case gslogin:
-
-        //mpUIMgr->RenderLogin(fPass);
-
-        break;
+    case D3DERR_DEVICENOTRESET:
+    {
+        D9DEVICE->OnDeviceLost();
     }
+    break;
+    default:
+    {
+        CXASSERT ( 0 );
+    }
+    break;
+    }
+	if (D9DEVICE->BeginRender())
+	{
+		switch ( gs )
+		{
 
-    D9DEVICE->EndRender();
+		case gsLoading:
 
+			//mpUIMgr->RenderLoading( fPass );
 
+			break;
+
+		case  gsGame:
+
+			GameRender ( fPass );
+
+			break;
+
+		case gslogin:
+
+			//mpUIMgr->RenderLogin(fPass);
+
+			break;
+		}
+
+		D9DEVICE->EndRender();
+	}
 
 }
 
-bool GGame::InitBase ( HWND mainWnd )
+bool GGame::initBase ( HWND mainWnd )
 {
     //setlocale( LC_ALL, "zh_CN.UTF-8" );
 
@@ -293,19 +306,19 @@ bool GGame::InitBase ( HWND mainWnd )
     gCursor.SetNowCursor ( curNormal );
 
     //初始化框架
-    CXASSERT_RETURN_FALSE ( __super::InitBase ( mainWnd ) );
+    CXASSERT_RETURN_FALSE ( __super::initBase ( mainWnd ) );
     //if ( mEditor )
     //{
     //    mEditor->SetWndProc ( ( void* ) WndProc );
     //}
     //初始化D3D设备
-	CXASSERT_RETURN_FALSE ( 
-		GSingletonD9Device::GetSingletonPtr()->Init ( mMainWin )
-		);
-    CXASSERT_RETURN_FALSE ( 
-		GSingletonD8Input::GetSingleton().Init(GSingletonD9Device::GetSingleton(),
-		mInst, mMainWin )
-		);
+    CXASSERT_RETURN_FALSE (
+        GSingletonD9Device::GetSingletonPtr()->Init ( mMainWin )
+    );
+    CXASSERT_RETURN_FALSE (
+        GSingletonD8Input::GetSingleton().Init ( GSingletonD9Device::GetSingleton(),
+                mInst, mMainWin )
+    );
 
     //初始化场景管理器
     mSceneMgr = new GSceneMgr;

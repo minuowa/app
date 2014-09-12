@@ -28,7 +28,7 @@ public:
     GGame(void);
     ~GGame(void);
 
-	virtual bool InitBase(HWND mainWnd);
+	virtual bool initBase(HWND mainWnd);
 
     virtual void Loop();
 

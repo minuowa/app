@@ -56,11 +56,18 @@ public:
     {
         return mD9Device;
     }
-
+	inline int TestDevice();
     void OnDeviceLost();
 	void OnResize(int w,int h);
 protected:
 	bool ResetDevice(int w,int h);
+public:
+	CXDelegate mOnLostDevice;
+	CXDelegate mOnResstDevice;
 };
 typedef CXSingleton<GD9Device> GSingletonD9Device;
 #define  D9DEVICE	GSingletonD9Device::GetSingletonPtr()
+inline int GD9Device::TestDevice()
+{
+	return mD9Device->TestCooperativeLevel();
+}

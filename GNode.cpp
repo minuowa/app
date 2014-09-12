@@ -169,7 +169,7 @@ GNode::GNode()
 
     m_fBlockArea = ZEROFLOAT;
 
-
+	mOpt = optByPosition;
 
     m_bUseMatrialColor = false;
 

@@ -78,8 +78,10 @@ void GD9Device::EndRender()
 		mD9Device->EndScene();
 	}
 
-	mD9Device->Present(0,0,mhWnd,0);
-
+	if(D3DERR_DEVICELOST==mD9Device->Present(0,0,mhWnd,0))
+	{
+		CXASSERT(0);
+	}
 }
 
 
@@ -338,12 +340,14 @@ int GD9Device::GetScreenHeight() const
 
 void GD9Device::OnDeviceLost()
 {
-
+	mOnLostDevice.trigger();
 }
 
 void GD9Device::OnResize( int w,int h )
 {
+	mOnLostDevice.trigger();
 	ResetDevice(w,h);
+	mOnResstDevice.trigger();
 }
 
 bool GD9Device::ResetDevice( int w,int h )
@@ -413,7 +417,8 @@ bool GD9Device::ResetDevice( int w,int h )
 
 	if (mD9Device)
 	{
-		mD9Device->Reset(&d3dp);
+		CXASSERT_RESULT_FALSE(mD9Device->Reset(&d3dp));
+		ResetRenderState();
 	}
 	else
 	{
@@ -438,5 +443,7 @@ bool GD9Device::ResetDevice( int w,int h )
 
 	return true;
 }
+
+
 
 

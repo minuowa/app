@@ -32,6 +32,7 @@ public:
     void SetProj();
 
 	virtual void Update();
+	virtual void onCallBack(const CXDelegate& delgate);
 public:
 
 	void TraceMan();
