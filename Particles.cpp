@@ -1,7 +1,7 @@
 #include "GGameDemoHeader.h"
 #include "Particles.h"
 #include "GTimer.h"
-#include "GD9Device.h"
+#include "GDevice_D3D.h"
 
 CRectMesh::CRectMesh( void )
 {
@@ -12,7 +12,7 @@ CRectMesh::CRectMesh( void )
 
     mpVB = NULL;
 
-    mpFace = NULL;
+    mFace = NULL;
 
     pSnow = NULL;
 }
@@ -31,7 +31,7 @@ bool CRectMesh::Create()
 
     //创建顶点缓存并初始化顶点数据
 
-    hr = D9DEVICE->GetDvc()->CreateVertexBuffer( LnNumParticles * sizeof( VertexSnow ), 0, D3DFVF_SNOW, D3DPOOL_DEFAULT, &mpVB, NULL );
+    hr = Device->GetDvc()->CreateVertexBuffer( LnNumParticles * sizeof( VertexSnow ), 0, D3DFVF_SNOW, D3DPOOL_DEFAULT, &mpVB, NULL );
 
     if ( FAILED( hr ) )
     {
@@ -64,7 +64,7 @@ bool CRectMesh::Create()
 
     //加载雪花纹理
 
-    hr = D3DXCreateTextureFromFileA( D9DEVICE->GetDvc(), "..\\Data\\res\\Particles\\snow\\snow.tga", &mpFace );
+    hr = D3DXCreateTextureFromFileA( Device->GetDvc(), "..\\Data\\res\\Particles\\snow\\snow.tga", &mFace );
 
     DebugMsgBox( hr, "..\\Data\\res\\Particles\\snow\\snow.tga找不到！" );
 
@@ -121,12 +121,12 @@ bool CRectMesh::Render()
 {
     return false;
 
-    if ( mpFace != NULL )
+    if ( mFace != NULL )
     {
-        D9DEVICE->GetDvc()->SetTexture( 0, mpFace );
+        Device->GetDvc()->SetTexture( 0, mFace );
     }
 
-    D9DEVICE->GetDvc()->SetFVF( D3DFVF_SNOW );
+    Device->GetDvc()->SetFVF( D3DFVF_SNOW );
 
 
     D3DXMATRIX matTranslation = NORMALMATRIX;
@@ -134,8 +134,8 @@ bool CRectMesh::Render()
 
     matTmp = GNode::GetWorldMatrix( false );
 
-    D9DEVICE->OpenAllLight( false );
-    D9DEVICE->OpenAlphaBlend( true );
+    Device->OpenAllLight( false );
+    Device->OpenAlphaBlend( true );
 
     for ( int i = 0; i < LnNumParticles; i++ )
     {
@@ -152,15 +152,15 @@ bool CRectMesh::Render()
 
         matWorld = matRx * matRy * matTranslation * matTmp;
 
-        D9DEVICE->GetDvc()->SetTransform( D3DTS_WORLD, &matWorld );
+        Device->GetDvc()->SetTransform( D3DTS_WORLD, &matWorld );
 
-        D9DEVICE->GetDvc()->SetStreamSource( 0, mpVB, 0, sizeof( VertexSnow ) );
+        Device->GetDvc()->SetStreamSource( 0, mpVB, 0, sizeof( VertexSnow ) );
 
-        D9DEVICE->GetDvc()->DrawPrimitive( D3DPT_TRIANGLESTRIP, 0, 2 );
+        Device->GetDvc()->DrawPrimitive( D3DPT_TRIANGLESTRIP, 0, 2 );
 
     }
 
-    D9DEVICE->OpenAlphaBlend( false );
+    Device->OpenAlphaBlend( false );
 
     return true;
 

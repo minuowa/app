@@ -9,6 +9,7 @@
 #include "XSingleton.h"
 #include "GTimer.h"
 #include "GD8Input.h"
+#include "GMaterial.h"
 
 GAnimMeshObj::GAnimMeshObj ( void )
     : mResource ( 0 )
@@ -85,7 +86,7 @@ void GAnimMeshObj::DrawMeshContainer ( D3DXMESHCONTAINER *pMeshContainerBase, D3
 
     D3DCAPS9 d3dCap;
     ZeroMemory ( &d3dCap, sizeof ( d3dCap ) );
-    D9DEVICE->GetDvc()->GetDeviceCaps ( &d3dCap );
+    Device->GetDvc()->GetDeviceCaps ( &d3dCap );
 
     if ( pMeshContainerEx->pBoneCombinationBufffer != NULL )
     {
@@ -93,10 +94,10 @@ void GAnimMeshObj::DrawMeshContainer ( D3DXMESHCONTAINER *pMeshContainerBase, D3
     }
 
 
-    D9DEVICE->OpenAllLight ( true );
+    Device->OpenAllLight ( true );
 
     DWORD dwAmbient = 0;
-    D9DEVICE->GetDvc()->GetRenderState ( D3DRS_AMBIENT, &dwAmbient );
+    Device->GetDvc()->GetRenderState ( D3DRS_AMBIENT, &dwAmbient );
 
     POINT pt = INPUTSYSTEM.GetMousePoint();
 
@@ -119,7 +120,7 @@ void GAnimMeshObj::DrawMeshContainer ( D3DXMESHCONTAINER *pMeshContainerBase, D3
     {
         if ( d3dCap.MaxVertexBlendMatrices >= pMeshContainerEx->NumInfl )
         {
-            D9DEVICE->GetDvc()->SetRenderState ( D3DRS_INDEXEDVERTEXBLENDENABLE, FALSE );
+            Device->GetDvc()->SetRenderState ( D3DRS_INDEXEDVERTEXBLENDENABLE, FALSE );
 
             for ( DWORD i = 0; i < pMeshContainerEx->NumInfl; ++i )
             {
@@ -134,40 +135,42 @@ void GAnimMeshObj::DrawMeshContainer ( D3DXMESHCONTAINER *pMeshContainerBase, D3
                         pMeshContainerEx->ppBoneMatrixPtrs[iMatrixIndex]
                     );
 
-                    D9DEVICE->GetDvc()->SetTransform ( D3DTS_WORLDMATRIX ( i ), &matTmp );
+                    Device->GetDvc()->SetTransform ( D3DTS_WORLDMATRIX ( i ), &matTmp );
                 }
             }
 
-            D9DEVICE->GetDvc()->SetRenderState ( D3DRS_VERTEXBLEND, pMeshContainerEx->NumInfl - 1 );
+            Device->GetDvc()->SetRenderState ( D3DRS_VERTEXBLEND, pMeshContainerEx->NumInfl - 1 );
 
-            D9DEVICE->GetDvc()->SetMaterial ( &pMeshContainerEx->pMaterials[pBoneComb[iAttr].AttribId].MatD3D );
 
             if ( m_bHit )
             {
                 gCursor.SetNowCursor ( curGrasp );
-                D9DEVICE->GetDvc()->SetTexture ( 0, NULL );
-            }
+                //D9DEVICE->GetDvc()->SetTexture ( 0, NULL );
+				Device->GetDvc()->SetMaterial ( &GMaterial::mDefaultRedMatrial );
+			}
             else
             {
                 gCursor.SetNowCursor ( curNormal );
-                D9DEVICE->GetDvc()->SetTexture ( 0, mpFace );
-            }
+                Device->GetDvc()->SetTexture ( 0, pMeshContainerEx->ppTexture[pBoneComb[iAttr].AttribId] );
+				Device->GetDvc()->SetMaterial ( &pMeshContainerEx->pMaterials[pBoneComb[iAttr].AttribId].MatD3D );
+			}
 
 
             DWORD dwLight = 0;
 
-            D9DEVICE->GetDvc()->GetRenderState ( D3DRS_LIGHTING, &dwLight );
+            Device->GetDvc()->GetRenderState ( D3DRS_LIGHTING, &dwLight );
 
             pMeshContainerEx->MeshData.pMesh->DrawSubset ( iAttr );
 
         }
 
-        D9DEVICE->GetDvc()->SetRenderState ( D3DRS_INDEXEDVERTEXBLENDENABLE, FALSE );
+        Device->GetDvc()->SetRenderState ( D3DRS_INDEXEDVERTEXBLENDENABLE, FALSE );
 
-        D9DEVICE->GetDvc()->SetRenderState ( D3DRS_VERTEXBLEND, FALSE );
+        Device->GetDvc()->SetRenderState ( D3DRS_VERTEXBLEND, FALSE );
     }
 
-    D9DEVICE->OpenAllLight ( false );
+	Device->GetDvc()->SetTexture ( 0, NULL );
+	Device->OpenAllLight ( false );
 
 }
 
@@ -320,16 +323,16 @@ bool GAnimMeshObj::Pick ( ID3DXMesh *pMesh, POINT pt )
     D3DXMATRIX matProj, matView, matWorld;
     D3DXMATRIX matTmp;
 
-    D9DEVICE->GetDvc()->GetTransform ( D3DTS_PROJECTION, &matProj );
-    D9DEVICE->GetDvc()->GetTransform ( D3DTS_VIEW, &matView );
-    D9DEVICE->GetDvc()->GetTransform ( D3DTS_WORLD, &matWorld );
+    Device->GetDvc()->GetTransform ( D3DTS_PROJECTION, &matProj );
+    Device->GetDvc()->GetTransform ( D3DTS_VIEW, &matView );
+    Device->GetDvc()->GetTransform ( D3DTS_WORLD, &matWorld );
 
     D3DXVECTOR4 vOrigin ( ZEROFLOAT, ZEROFLOAT, ZEROFLOAT, 1.0f );
     D3DXVECTOR4 vDir;
 
     //注意此处的2.0f与2的区别
-    vDir.x = ( 2.0f * pt.x / D9DEVICE->mWidth - 1 ) / matProj._11;
-    vDir.y = - ( 2.0f * pt.y / D9DEVICE->mHeight - 1 ) / matProj._22;
+    vDir.x = ( 2.0f * pt.x / Device->mWidth - 1 ) / matProj._11;
+    vDir.y = - ( 2.0f * pt.y / Device->mHeight - 1 ) / matProj._22;
     vDir.z = 1.0f;
     vDir.w = 0.0f;
 
@@ -379,7 +382,7 @@ bool GAnimMeshObj::ReCreate()
     }
     GComponentMesh* componentMesh = ( GComponentMesh* ) mComponentOwner.GetComponent ( eComponentType_Mesh );
     CXASSERT_RESULT_FALSE ( componentMesh );
-    mResource = GAnimationManager::GetSingleton().GetResource ( componentMesh->MeshFile().c_str() );
+    mResource = GAnimationManager::GetSingleton().getResource ( componentMesh->MeshFile().c_str() );
     //                             if ( !IsStrEmpty ( m_sTextureName ) )
     //{
     //    D3DXCreateTextureFromFileA ( D9DEVICE->GetDvc(), m_sTextureName, &mpFace );
@@ -457,5 +460,12 @@ bool GAnimMeshObj::Render()
         m_bHit = false;
     }
     return true;
+}
+
+void GAnimMeshObj::setMeshFile( const char* file )
+{
+	GComponentMesh* componentMesh=(GComponentMesh*)GetComponent(eComponentType_Mesh);
+	CXASSERT(componentMesh);
+	componentMesh->MeshFile(file);
 }
 

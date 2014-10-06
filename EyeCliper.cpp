@@ -11,7 +11,6 @@ CEyeCliper::CEyeCliper( float fn,float angle, float wh )
 	float y=fn*tanf(angle);
 
 	float x=y*wh;
-
 	//∂•µ„ æ“‚Õº
 	//1.........2
 	//4.........3

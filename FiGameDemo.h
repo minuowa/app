@@ -7,12 +7,12 @@
 //#define FiGameDemo_API __declspec(dllimport)
 //#endif
 #define FiGameDemo_API
-extern "C"
-{
+//extern "C"
+//{
 	FiGameDemo_API int FiGameDemo_Init(HWND mainWnd);
 	FiGameDemo_API void FiGameDemo_Update();
 	FiGameDemo_API void FiGameDemo_ShutDown();
-}
+//}
 
 
 

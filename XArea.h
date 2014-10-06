@@ -1,6 +1,5 @@
 #pragma once
 
-
 //区域类，为粒子系统的一个成员
 
 class CXArea

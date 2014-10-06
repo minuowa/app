@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GD9Device.h"
+#include "GDevice_D3D.h"
 #include "XSingleton.h"
 
 #define DI_BUTTONNULL 0
@@ -17,7 +17,7 @@ enum eButtonType
 	eButtonType_MiddleButton,
 	eButtonType_Count,
 };
-class GD9Device;
+class GDevice_D3D;
 class GD8Input
 {
 public:
@@ -52,7 +52,7 @@ public:
     void FreezeMouse ( bool bFreeze );
     void Update();
     void Active ( bool active );
-    bool Init ( const GD9Device& device, HINSTANCE hInst, HWND hWin );
+    bool Init ( const GDevice_D3D& device, HINSTANCE hInst, HWND hWin );
 private:
     void UpdateState();
 

@@ -1,7 +1,7 @@
 #include "GGameDemoHeader.h"
 #include "XEffect.h"
 #include <string>
-#include "GD9Device.h"
+#include "GDevice_D3D.h"
 
 CXEffect gEffect;
 
@@ -40,7 +40,7 @@ bool CXEffect::Create( char *sEffectFileName )
 
 
 	hr=D3DXCreateEffectFromFileA(
-		D9DEVICE->GetDvc(),
+		Device->GetDvc(),
 		sEffectFileName,
 		NULL,
 		NULL,
@@ -73,7 +73,7 @@ bool CXEffect::Create( char *sEffectFileName )
 		D3DDECL_END()
 	};
 
-	hr=D9DEVICE->GetDvc()->CreateVertexDeclaration(decl,&m_pVDel);
+	hr=Device->GetDvc()->CreateVertexDeclaration(decl,&m_pVDel);
 
 	return true;
 }

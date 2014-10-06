@@ -6,7 +6,7 @@
 #include "GNode.h"
 #include "GMeshBuffer.h"
 #include "GCamera.h"
-#include "GD9Device.h"
+#include "GDevice_D3D.h"
 #include "XMeshObj.h"
 #include "GFactory.h"
 
@@ -53,7 +53,7 @@ public:
 public:
 
     void CullObj();
-	bool Init ( const GD9Device& DVC );
+	bool Init ( const GDevice_D3D& DVC );
     void* GetInput ( float fPass );
     void SetView();
     void SetProj();
@@ -82,4 +82,6 @@ public:
     GNode* mSceneDynamiRootNode;
 
     GFactory<GNode> mGameObjFactory;
+
+	CXDelegate mDelegateAddObj;
 };

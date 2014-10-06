@@ -33,7 +33,7 @@ GNode* GComponentInterface::GetTarget() const
 
 GComponentOwner::GComponentOwner()
 {
-    CXMemoryZeroArray ( mCompoents );
+    dMemoryZeroArray ( mCompoents );
 }
 
 GComponentInterface* GComponentOwner::GetComponent ( const char* name ) const
@@ -99,7 +99,7 @@ void GComponentOwner::DetachComponent ( const char* name )
             {
                 if ( mCompoents[i]->CanDetach() )
                 {
-                    CXSafeDelete ( mCompoents[i] );
+                    dSafeDelete ( mCompoents[i] );
                 }
             }
         }

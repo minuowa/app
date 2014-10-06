@@ -152,6 +152,10 @@ public:
     {
         return mComponentOwner;
     }
+	inline GComponentInterface* GetComponent(eComponentType type) const
+	{
+		return mComponentOwner.GetComponent(type);
+	}
 };
 
 typedef CXDynaArray<GNode*> GNodeArr;

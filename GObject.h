@@ -2,6 +2,8 @@
 #include "XString.h"
 #include "XMap.h"
 #include "XMultimap.h"
+#include "XProp.h"
+#include "XDelegate.h"
 
 typedef String EPropertyString;
 

@@ -1,5 +1,5 @@
-#ifndef StdAfx_h__
-#define StdAfx_h__
+#ifndef GGameDemoHeader_h__
+#define GGameDemoHeader_h__
 //--------------------------------------------------------------------------------------------------
 //Windows所需头文件及库文件
 #include <stdio.h>
@@ -68,12 +68,12 @@
 
 inline void Toggle ( bool b )
 {
-    b = !b;
+	b = !b;
 }
 template<typename T1, typename T2>
 void CXCast ( T1& dst, T2* src )
 {
-    dst = * ( ( T1* ) src );
+	dst = * ( ( T1* ) src );
 }
 
 //游戏中定义参数
@@ -127,35 +127,35 @@ void CXCast ( T1& dst, T2* src )
 
 enum TextPos
 {
-    tpCenter,
-    tpLeft,
-    tpRight,
+	tpCenter,
+	tpLeft,
+	tpRight,
 };
 
 //模型的类型，决定模型的创建方式
 enum eMeshType
 {
-    mtMap,	//地图类型的，如地图、海面
+	mtMap,	//地图类型的，如地图、海面
 
-    mtXFile,	//从X文件中加载的模型
+	mtXFile,	//从X文件中加载的模型
 
 };
 
 struct MapObjInfo
 {
-    int nObjId;		//对象ID
-    float x;		//坐标的X值
-    float z;		//坐标的Z值
+	int nObjId;		//对象ID
+	float x;		//坐标的X值
+	float z;		//坐标的Z值
 
-    float fBlockHeight;
-    D3DXVECTOR3 vMin;
-    D3DXVECTOR3 vMax;
+	float fBlockHeight;
+	D3DXVECTOR3 vMin;
+	D3DXVECTOR3 vMax;
 };
 
 enum eForceType
 {
-    ftUpAlways,			//上方向总是（0,1,0）
-    ftUpWithMap,		//上方向与地面垂直，随地图而改变
+	ftUpAlways,			//上方向总是（0,1,0）
+	ftUpWithMap,		//上方向与地面垂直，随地图而改变
 };
 //////////////////////////引擎文件常用的函数////////////////////////////////////
 
@@ -218,23 +218,23 @@ bool GetBoundRadius ( ID3DXMesh *pMesh, float *pfRadiusOut );
 	static bool bInit = false;\
 	CXASSERT(!bInit && "not a singleton");\
 	bInit = true;\
- 
+
 enum eHitType
 {
-    htNull,							//什么都没有撞到
-    htAutoMoveHitNoMap,				//没有撞到
-    htAutoMoveHitNoObj,				//没有撞到物体
-    htAutoMoveHitMap,				//撞到地图了
-    htAutoMoveHitObj,				//撞到物体了
-    //htAutoMoveHitObjAndMap,		//都撞到了
+	htNull,							//什么都没有撞到
+	htAutoMoveHitNoMap,				//没有撞到
+	htAutoMoveHitNoObj,				//没有撞到物体
+	htAutoMoveHitMap,				//撞到地图了
+	htAutoMoveHitObj,				//撞到物体了
+	//htAutoMoveHitObjAndMap,		//都撞到了
 
-    htNotAutoMoveHitNoMap,			//没有撞到
-    htNotAutoMoveHitMap,			//撞到地图
-    htNotAutoMoveHitObj,			//撞到物体
-    htNotAutoMoveHitNoObj,			//没有撞到物体
+	htNotAutoMoveHitNoMap,			//没有撞到
+	htNotAutoMoveHitMap,			//撞到地图
+	htNotAutoMoveHitObj,			//撞到物体
+	htNotAutoMoveHitNoObj,			//没有撞到物体
 
-    htNotAutoMoveHitBelowMap,		//撞到下面的物体了
-    htNotAutoMoveHitNoBelowMap,		//没有撞到下面的物体
+	htNotAutoMoveHitBelowMap,		//撞到下面的物体了
+	htNotAutoMoveHitNoBelowMap,		//没有撞到下面的物体
 
 };
 
@@ -242,11 +242,11 @@ enum eHitType
 //对象类型，创建时决定了
 enum eObjType
 {
-    Obj,
-    WorldObj,
-    VisObj,
-    MeshObj,
-    AnimMeshObj,
+	Obj,
+	WorldObj,
+	VisObj,
+	MeshObj,
+	AnimMeshObj,
 };
 
 #define UpdateWithMap 1
@@ -266,74 +266,75 @@ enum eObjType
 
 enum eObjAnimState			//对象的状态
 {
-    oasNULL,
-    oasStandBy,
-    oasMoving,
-    oasTurning,
-    oasDead,
-    oasAttack,
-    oasBeAttack,
-    oasRunAttack,
+	oasNULL,
+	oasStandBy,
+	oasMoving,
+	oasTurning,
+	oasDead,
+	oasAttack,
+	oasBeAttack,
+	oasRunAttack,
 };
 
 
 
 enum eObjParentType
 {
-    optByPosition,
-    optByName,
+	optByPosition,
+	optByName,
 };
 
 struct ForceMapPara
 {
-    void *pMap;
+	void *pMap;
 
-    float fForceHeight;
+	float fForceHeight;
 
-    eForceType ft;
+	eForceType ft;
 
-    ForceMapPara ( void *Map, float fHeight, eForceType ForceType )
-    {
-        pMap = Map;
+	ForceMapPara ( void *Map, float fHeight, eForceType ForceType )
+	{
+		pMap = Map;
 
-        fForceHeight = fHeight;
+		fForceHeight = fHeight;
 
-        ft = ForceType;
-    }
+		ft = ForceType;
+	}
 
 };
 
 enum eMeshUsage
 {
-    muRender,
-    muInsect,
+	muRender,
+	muInsect,
 };
 
 struct MeshPara
 {
 public:
 
-    int	  LnID;				//模型的ID
-    float mfCellWidth;	    //地图中格子宽度
-    float mfMaxHeight;	    //地图的最大高度
-    int	  LnCellCount;	    //地图中格子数量
-    char* mstrFileName;     //纹理文件名字，X文件名字
-    char* mstrHeightMap;    //高度图文件名字
+	int	  LnID;				//模型的ID
+	float mfCellWidth;	    //地图中格子宽度
+	float mfMaxHeight;	    //地图的最大高度
+	int	  LnCellCount;	    //地图中格子数量
+	char* mstrFileName;     //纹理文件名字，X文件名字
+	char* mstrHeightMap;    //高度图文件名字
 
 public:
-    MeshPara() {};
+	MeshPara() {};
 
-    MeshPara ( int nID, float CellWidth, float MaxHight, int CellCount, char *strFileName, char *strHeightMap )
-    {
-        LnID = nID;
-        mfCellWidth = CellWidth;
-        mfMaxHeight = MaxHight;
-        LnCellCount = CellCount;
-        mstrFileName = strFileName;
-        mstrHeightMap = strHeightMap;
-    }
+	MeshPara ( int nID, float CellWidth, float MaxHight, int CellCount, char *strFileName, char *strHeightMap )
+	{
+		LnID = nID;
+		mfCellWidth = CellWidth;
+		mfMaxHeight = MaxHight;
+		LnCellCount = CellCount;
+		mstrFileName = strFileName;
+		mstrHeightMap = strHeightMap;
+	}
 };
 typedef void* GHandle;
 extern const char* GetMediaPath();
 //--------------------------------------------------------------------------------------------------
-#endif // StdAfx_h__
+
+#endif // GGameDemoHeader_h__

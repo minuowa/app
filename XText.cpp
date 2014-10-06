@@ -1,7 +1,7 @@
 #include "GGameDemoHeader.h"
 
 #include "XText.h"
-#include "GD9Device.h"
+#include "GD3D9evice.h"
 //#include "GXNode.h"
 
 
@@ -26,7 +26,7 @@ bool CXText::Init()
     for ( int i = 0; i < 16; i++ )
     {
         nHeight = -1 * mFontHeight[i] * nLogPixelsY / 72;
-        D3DXCreateFontA( D9DEVICE->GetDvc(),
+        D3DXCreateFontA( Device->GetDvc(),
                          nHeight,
                          0,
                          FW_BOLD,
@@ -42,7 +42,7 @@ bool CXText::Init()
     }
 
     nHeight = -1 * 18 * nLogPixelsY / 72;
-    HRESULT Hr = D3DXCreateFontA( D9DEVICE->GetDvc(),
+    HRESULT Hr = D3DXCreateFontA( Device->GetDvc(),
                                   nHeight,
                                   0,
                                   FW_BOLD,
@@ -59,7 +59,7 @@ bool CXText::Init()
     CHECK_RESULT_BOOL(Hr);
 
     mDefaultFont = mFonts[7]; //Ä¬ÈÏ18ºÅ×ÖÌå
-    Hr = D3DXCreateSprite( D9DEVICE->GetDvc(), &mFontSprite );
+    Hr = D3DXCreateSprite( Device->GetDvc(), &mFontSprite );
 
 	CHECK_RESULT_BOOL(Hr);
 
@@ -227,7 +227,7 @@ int CXText::DrawTextInRect( char* sText, RECT *r, DWORD Color, OBJTYPE ot, TextP
         D3DXMATRIX MatrixView, Rota;
         D3DXMatrixRotationYawPitchRoll( &Rota, 0, D3DX_PI, 0 );
         World = Rota * World;
-        D9DEVICE->GetDvc()->GetTransform( D3DTS_VIEW, &MatrixView );
+        Device->GetDvc()->GetTransform( D3DTS_VIEW, &MatrixView );
         mFontSprite->SetTransform( &World );
         mFontSprite->SetWorldViewLH( NULL, &MatrixView );
         mFontSprite->Begin(
@@ -278,7 +278,7 @@ int CXText::DrawTextByPosColOt( char* sText, D3DVECTOR Pos, DWORD Color, OBJTYPE
         D3DXMATRIX MatrixView, Rota;
         D3DXMatrixRotationYawPitchRoll( &Rota, 0, D3DX_PI, 0 );
         World = Rota * World;
-        D9DEVICE->GetDvc()->GetTransform( D3DTS_VIEW, &MatrixView );
+        Device->GetDvc()->GetTransform( D3DTS_VIEW, &MatrixView );
         mFontSprite->SetTransform( &World );
         mFontSprite->SetWorldViewLH( NULL, &MatrixView );
         mFontSprite->Begin( D3DXSPRITE_BILLBOARD | D3DXSPRITE_SORT_DEPTH_BACKTOFRONT |	D3DXSPRITE_ALPHABLEND );
@@ -291,7 +291,7 @@ int CXText::DrawTextByPosColOt( char* sText, D3DVECTOR Pos, DWORD Color, OBJTYPE
         World = Rota * World;
 
         mFontSprite->SetTransform( &World );
-        D9DEVICE->GetDvc()->GetTransform( D3DTS_VIEW, &MatrixView );
+        Device->GetDvc()->GetTransform( D3DTS_VIEW, &MatrixView );
         Pos = -1 * D3DXVECTOR3( &MatrixView._41 );
         Look = Pos + D3DXVECTOR3( 0, 0, 1 );
         D3DXMatrixLookAtLH( &MatrixView, &Pos, &Look, &Up );
@@ -328,10 +328,10 @@ void CXText::DrawPic( LPDIRECT3DTEXTURE9 Pic, D3DVECTOR Pos, bool IsCenter, OBJT
 
             if ( bAlphaBlend )
             {
-                D9DEVICE->GetDvc()->SetRenderState( D3DRS_ZWRITEENABLE, false );
-                D9DEVICE->GetDvc()->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
-                D9DEVICE->GetDvc()->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_SRCCOLOR );		//D3DBLEND_SRCALPHA
-                D9DEVICE->GetDvc()->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_INVSRCCOLOR );
+                Device->GetDvc()->SetRenderState( D3DRS_ZWRITEENABLE, false );
+                Device->GetDvc()->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
+                Device->GetDvc()->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_SRCCOLOR );		//D3DBLEND_SRCALPHA
+                Device->GetDvc()->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_INVSRCCOLOR );
             }
 
             mFontSprite->SetTransform( &World );
@@ -341,7 +341,7 @@ void CXText::DrawPic( LPDIRECT3DTEXTURE9 Pic, D3DVECTOR Pos, bool IsCenter, OBJT
             D3DXMatrixRotationYawPitchRoll( &Rota, 0, D3DX_PI, 0 );
             World = Rota * World;
             mFontSprite->SetTransform( &World );
-            D9DEVICE->GetDvc()->GetTransform( D3DTS_VIEW, &MatrixView );
+            Device->GetDvc()->GetTransform( D3DTS_VIEW, &MatrixView );
             ePos = -1 * D3DXVECTOR3( &MatrixView._41 );
             eLook = ePos + D3DXVECTOR3( 0, 0, 1 );
             D3DXMatrixLookAtLH( &MatrixView, &ePos, &eLook, &eUp );
@@ -354,7 +354,7 @@ void CXText::DrawPic( LPDIRECT3DTEXTURE9 Pic, D3DVECTOR Pos, bool IsCenter, OBJT
 
             D3DXMatrixRotationYawPitchRoll( &Rota, 0, D3DX_PI, 0 );
             World = Rota * World;
-            D9DEVICE->GetDvc()->GetTransform( D3DTS_VIEW, &MatrixView );
+            Device->GetDvc()->GetTransform( D3DTS_VIEW, &MatrixView );
             mFontSprite->SetTransform( &World );
             mFontSprite->SetWorldViewLH( NULL, &MatrixView );
             mFontSprite->Begin( D3DXSPRITE_BILLBOARD | D3DXSPRITE_SORT_DEPTH_BACKTOFRONT | D3DXSPRITE_ALPHABLEND );
@@ -380,8 +380,8 @@ void CXText::DrawPic( LPDIRECT3DTEXTURE9 Pic, D3DVECTOR Pos, bool IsCenter, OBJT
     }
 
     mFontSprite->End();
-    D9DEVICE->GetDvc()->SetRenderState( D3DRS_ALPHABLENDENABLE, false );
-    D9DEVICE->GetDvc()->SetRenderState( D3DRS_ZWRITEENABLE, true );
+    Device->GetDvc()->SetRenderState( D3DRS_ALPHABLENDENABLE, false );
+    Device->GetDvc()->SetRenderState( D3DRS_ZWRITEENABLE, true );
 }
 
 

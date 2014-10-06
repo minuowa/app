@@ -3,6 +3,7 @@
 #include "XString.h"
 #include <locale.h>
 #include "XEvent.h"
+#include "GDevice.h"
 
 /******************************************************************/
 //天空在MeshBuffer中，海面和地图不在
@@ -177,11 +178,11 @@ void GGame::GetInput()
 
             if ( bFlag )
             {
-                D9DEVICE->GetDvc()->SetRenderState ( D3DRS_FILLMODE, D3DFILL_SOLID );
+                Device->GetDvc()->SetRenderState ( D3DRS_FILLMODE, D3DFILL_SOLID );
             }
             else
             {
-                D9DEVICE->GetDvc()->SetRenderState ( D3DRS_FILLMODE, D3DFILL_WIREFRAME );
+                Device->GetDvc()->SetRenderState ( D3DRS_FILLMODE, D3DFILL_WIREFRAME );
             }
 
             Toggle ( bFlag );
@@ -242,14 +243,14 @@ void GGame::Render( )
     eGameScene gs = mSceneMgr->mSceneMachine.GetNowScene();
 
     mSceneMgr->SetView();
-    switch ( D9DEVICE->TestDevice() )
+    switch ( Device->TestDevice() )
     {
     case D3D_OK:
     case D3DERR_DEVICELOST:
         break;
     case D3DERR_DEVICENOTRESET:
     {
-        D9DEVICE->OnDeviceLost();
+        Device->OnDeviceLost();
     }
     break;
     default:
@@ -258,7 +259,7 @@ void GGame::Render( )
     }
     break;
     }
-	if (D9DEVICE->BeginRender())
+	if (Device->beginRender())
 	{
 		switch ( gs )
 		{
@@ -282,7 +283,7 @@ void GGame::Render( )
 			break;
 		}
 
-		D9DEVICE->EndRender();
+		Device->endRender();
 	}
 
 }
@@ -312,9 +313,13 @@ bool GGame::initBase ( HWND mainWnd )
     //    mEditor->SetWndProc ( ( void* ) WndProc );
     //}
     //初始化D3D设备
-    CXASSERT_RETURN_FALSE (
-        GSingletonD9Device::GetSingletonPtr()->Init ( mMainWin )
-    );
+    //CXASSERT_RETURN_FALSE (
+    //    GSingletonD9Device::GetSingletonPtr()->Init ( mMainWin )
+    //);
+	GDevice_D3D* pd3dDevice=new GDevice_D3D;
+	CXASSERT_RETURN_FALSE(pd3dDevice->Init(mainWnd));
+	GDevice::mInstance=pd3dDevice;
+	CXASSERT_RETURN_FALSE()
     CXASSERT_RETURN_FALSE (
         GSingletonD8Input::GetSingleton().Init ( GSingletonD9Device::GetSingleton(),
                 mInst, mMainWin )
@@ -330,25 +335,25 @@ bool GGame::initBase ( HWND mainWnd )
 
     GMeshManager::GetSingleton().Init();
 
-    D9DEVICE->ResetRenderState();
+    Device->ResetRenderState();
 
-    bSuccess = gEffect.Create ( "..\\Data\\Effect\\SimpleEffect.fx" );
+    //bSuccess = gEffect.Create ( "..\\Data\\Effect\\SimpleEffect.fx" );
 
-    gEffect.m_hWorldViewProj = gEffect.mD3DEffect->GetParameterByName ( 0, "matWorldViewProj" );
+    //gEffect.m_hWorldViewProj = gEffect.mD3DEffect->GetParameterByName ( 0, "matWorldViewProj" );
 
-    gEffect.m_hWorld = gEffect.mD3DEffect->GetParameterByName ( 0, "matWorld" );
+    //gEffect.m_hWorld = gEffect.mD3DEffect->GetParameterByName ( 0, "matWorld" );
 
-    gEffect.m_Tech = gEffect.mD3DEffect->GetTechniqueByName ( "TShader" );
+    //gEffect.m_Tech = gEffect.mD3DEffect->GetTechniqueByName ( "TShader" );
 
-    gEffect.m_hUseMaterialOnly = gEffect.mD3DEffect->GetParameterByName ( 0, "bUseMaterialOnly" );
+    //gEffect.m_hUseMaterialOnly = gEffect.mD3DEffect->GetParameterByName ( 0, "bUseMaterialOnly" );
 
-    gEffect.m_hTexture = gEffect.mD3DEffect->GetParameterByName ( 0, "TexObj" );
+    //gEffect.m_hTexture = gEffect.mD3DEffect->GetParameterByName ( 0, "TexObj" );
 
-    gEffect.m_hMtrlAmbient = gEffect.mD3DEffect->GetParameterByName ( 0, "materialAmbient" );
+    //gEffect.m_hMtrlAmbient = gEffect.mD3DEffect->GetParameterByName ( 0, "materialAmbient" );
 
-    gEffect.m_hMtrlDiffuse = gEffect.mD3DEffect->GetParameterByName ( 0, "materialDiffuse" );
+    //gEffect.m_hMtrlDiffuse = gEffect.mD3DEffect->GetParameterByName ( 0, "materialDiffuse" );
 
-    gEffect.m_hOpenLight = gEffect.mD3DEffect->GetParameterByName ( 0, "bOpenLight" );
+    //gEffect.m_hOpenLight = gEffect.mD3DEffect->GetParameterByName ( 0, "bOpenLight" );
 
 
     //加载渲染对象大概3000ms
@@ -401,9 +406,11 @@ DWORD WINAPI LoadObj ( LPVOID pParam )
 //   pGame->mSea.m_bCanSelect = false;
 //   pGame->mSea.AddQuakePoint( 0, 0, 10.0f, 0.5f );
 
-//   GAnimMeshObj *pAnimMesh = new GAnimMeshObj;
-
-    //TheSceneMgr->mEye.InitTrack( &gAnimMesh[0] );
+   GAnimMeshObj *pAnimMesh = new GAnimMeshObj;
+   pAnimMesh->setMeshFile("..\\Data\\res\\Anim\\AnimMesh0002\\A0002.x");
+   CXASSERT_RETURN_FALSE(pAnimMesh->ReCreate());
+   TheSceneMgr->AddDynaObj ( pAnimMesh );
+   //TheSceneMgr->mEye.InitTrack( &gAnimMesh[0] );
 
     //gEvent.WaitForUse(-1);
 

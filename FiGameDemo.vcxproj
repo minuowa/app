@@ -5,9 +5,17 @@
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Release|Win32">
       <Configuration>Release</Configuration>
       <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -21,9 +29,20 @@
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v110</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -31,7 +50,13 @@
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
@@ -40,24 +65,76 @@
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\Debug\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Configuration)\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Configuration)\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">D:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(IncludePath)</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">D:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(IncludePath)</IncludePath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">D:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x86;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">D:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x64;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>..\debug\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\CXBase;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;DIRECTINPUT_VERSION 0X80;_LIB;FiGameDemo_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\CXBase;D:\SDK\OpenGL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;DIRECTINPUT_VERSION=0X80;FiGameDemo_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader>Create</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <PrecompiledHeaderOutputFile>GGameDemo.pch</PrecompiledHeaderOutputFile>
+      <PrecompiledHeaderFile>GGameDemoHeader.h</PrecompiledHeaderFile>
+      <FunctionLevelLinking>
+      </FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>CXBase.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\Debug\;D:\SDK\OpenGL;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <TargetMachine>MachineX86</TargetMachine>
+      <ModuleDefinitionFile>
+      </ModuleDefinitionFile>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
+    </Lib>
+    <Lib>
+      <AdditionalLibraryDirectories>..\Debug\</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
+    </Lib>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..\CXBase;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;DIRECTINPUT_VERSION 0X80;FiGameDemo_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PrecompiledHeader>Create</PrecompiledHeader>
@@ -74,12 +151,13 @@
       <AdditionalLibraryDirectories>..\Debug\;..\qt\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
-      <TargetMachine>MachineX86</TargetMachine>
       <ModuleDefinitionFile>
       </ModuleDefinitionFile>
+      <TargetMachine>MachineX64</TargetMachine>
     </Link>
     <Lib>
-      <AdditionalDependencies>EditorSheet.lib</AdditionalDependencies>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
     </Lib>
     <Lib>
       <AdditionalLibraryDirectories>..\Debug\</AdditionalLibraryDirectories>
@@ -87,7 +165,7 @@
       </IgnoreSpecificDefaultLibraries>
     </Lib>
     <ProjectReference>
-      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
   </ItemDefinitionGroup>
@@ -112,20 +190,52 @@
       <ModuleDefinitionFile>FiGameDemo.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <ModuleDefinitionFile>FiGameDemo.def</ModuleDefinitionFile>
+    </Link>
+  </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="FiGameDemo.cpp" />
     <ClCompile Include="GAllocateHierarchy.cpp" />
     <ClCompile Include="GAnimationResource.cpp" />
     <ClCompile Include="GComponentBox.cpp" />
     <ClCompile Include="GComponentFactory.cpp" />
     <ClCompile Include="GComponentInterface.cpp" />
     <ClCompile Include="GComponentMesh.cpp" />
-    <ClCompile Include="GD9Device.cpp" />
-    <ClCompile Include="GMeshData.cpp" />
+    <ClCompile Include="GDevice_D3D.cpp" />
+    <ClCompile Include="GDevice.cpp" />
+    <ClCompile Include="GDeviceResource.cpp" />
+    <ClCompile Include="GGLDevice.cpp" />
+    <ClCompile Include="GIndexBuffer.cpp" />
+    <ClCompile Include="GIndexBuffer_D3D.cpp" />
+    <ClCompile Include="GMaterial.cpp" />
+    <ClCompile Include="GMeshResource.cpp" />
+    <ClCompile Include="GGraph.cpp" />
     <ClCompile Include="GObject.cpp" />
     <ClCompile Include="GRenderObject.cpp" />
     <ClCompile Include="GAmmo.cpp" />
     <ClCompile Include="GAnimMeshObj.cpp" />
     <ClCompile Include="GBound.cpp" />
+    <ClCompile Include="GTexture.cpp" />
+    <ClCompile Include="GTexture_D3D.cpp" />
+    <ClCompile Include="GVertexBuffer.cpp" />
+    <ClCompile Include="GVertexBuffer_D3D.cpp" />
     <ClCompile Include="GWorldCorrd.cpp" />
     <ClCompile Include="GD8Input.cpp" />
     <ClCompile Include="GMeshBuffer.cpp" />
@@ -143,22 +253,21 @@
     <ClCompile Include="GGameDemoHeader.cpp" />
     <ClCompile Include="XArea.cpp" />
     <ClCompile Include="XCursor.cpp" />
-    <ClCompile Include="XEffect.cpp" />
     <ClCompile Include="XEvent.cpp" />
     <ClCompile Include="GGameMap.cpp" />
     <ClCompile Include="GMeshBaseObj.cpp" />
-    <ClCompile Include="XMeshObj.cpp" />
     <ClCompile Include="XMultiThread.cpp" />
     <ClCompile Include="GNode.cpp" />
     <ClCompile Include="GComponentTrans.cpp" />
     <ClCompile Include="XTerrain.cpp" />
     <ClCompile Include="XTerrainNode.cpp" />
-    <ClCompile Include="XText.cpp" />
     <ClCompile Include="GTimer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Game.h" />
     <CustomBuildStep Include="luawraper\LuaContext.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </CustomBuildStep>
     <ClInclude Include="GAllocateHierarchy.h" />
     <ClInclude Include="GAmmo.h" />
@@ -169,13 +278,25 @@
     <ClInclude Include="GComponentFactory.h" />
     <ClInclude Include="GComponentInterface.h" />
     <ClInclude Include="GComponentMesh.h" />
+    <ClInclude Include="GDevice.h" />
+    <ClInclude Include="GDeviceResource.h" />
     <ClInclude Include="GFactory.h" />
-    <ClInclude Include="GMeshData.h" />
+    <ClInclude Include="GGLDevice.h" />
+    <ClInclude Include="GIndexBuffer.h" />
+    <ClInclude Include="GIndexBuffer_D3D.h" />
+    <ClInclude Include="GMaterial.h" />
+    <ClInclude Include="GMeshResource.h" />
+    <ClInclude Include="GGraph.h" />
     <ClInclude Include="GObject.h" />
     <ClInclude Include="GResourceManager.h" />
+    <ClInclude Include="GTexture.h" />
+    <ClInclude Include="GTexture_D3D.h" />
+    <ClInclude Include="GType.h" />
+    <ClInclude Include="GVertexBuffer.h" />
+    <ClInclude Include="GVertexBuffer_D3D.h" />
     <ClInclude Include="GWorldCorrd.h" />
     <ClInclude Include="GD8Input.h" />
-    <ClInclude Include="GD9Device.h" />
+    <ClInclude Include="GDevice_D3D.h" />
     <ClInclude Include="GMeshBuffer.h" />
     <ClInclude Include="GTextureBuffer.h" />
     <ClInclude Include="GCamera.h" />
@@ -193,17 +314,14 @@
     <ClInclude Include="GGameDemoHeader.h" />
     <ClInclude Include="XArea.h" />
     <ClInclude Include="XCursor.h" />
-    <ClInclude Include="XEffect.h" />
     <ClInclude Include="XEvent.h" />
     <ClInclude Include="GGameMap.h" />
     <ClInclude Include="GMeshBaseObj.h" />
-    <ClInclude Include="XMeshObj.h" />
     <ClInclude Include="XMultiThread.h" />
     <ClInclude Include="GNode.h" />
     <ClInclude Include="GComponentTrans.h" />
     <ClInclude Include="XTerrain.h" />
     <ClInclude Include="XTerrainNode.h" />
-    <ClInclude Include="XText.h" />
     <ClInclude Include="GTimer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

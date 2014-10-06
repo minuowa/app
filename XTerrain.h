@@ -3,6 +3,8 @@
 #include "XVector3.h"
 #include "GNode.h"
 class CXTerrainNode;
+class GVertexBuffer;
+class GIndexBuffer;
 struct CXTerrainVertex
 {
     CXVector3	Pos;
@@ -19,28 +21,28 @@ class CXTerrain :
         CXTerrain( void );
         ~CXTerrain( void );
 
-        bool Init();
-        XI32 GetLineWidth() const;
-        XI32 GetCellWidth() const;
+        bool init();
+        XI32 getLineCount() const;
+        XI32 getCellCountPerLine() const;
     private:
-        bool CreateIndexBuffer();
-        bool CreateVertexBuffer();
+        bool createIndexBuffer();
+        bool createVertexBuffer();
 
     private:
         int	mLevel;
         int mWidth;
-        IDirect3DVertexBuffer9* mVertexBuffer;
-        IDirect3DIndexBuffer9*	mIndexBuffer;
+        GVertexBuffer* mVertexBuffer;
+        GIndexBuffer*	mIndexBuffer;
         CXTerrainNode* mRoot;
 };
 inline
-XI32 CXTerrain::GetCellWidth() const
+XI32 CXTerrain::getCellCountPerLine() const
 {
     return ::pow( 2.0f, mLevel );
 }
 inline
-XI32 CXTerrain::GetLineWidth() const
+XI32 CXTerrain::getLineCount() const
 {
-    return GetCellWidth() + 1;
+    return getCellCountPerLine() + 1;
 }
 

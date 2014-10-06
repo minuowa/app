@@ -64,7 +64,7 @@ void GObject::UnRegisterAll()
     for ( ; walk != end; ++walk )
     {
         PropertyMap* propMap = walk->second;
-        CXSafeDeleteMap2 ( *propMap );
+        dSafeDeleteMap2 ( *propMap );
     }
     mOption.clear();
 }

@@ -2,7 +2,7 @@
 
 #include "GTextureBuffer.h"
 #include "GMeshBaseObj.h"
-#include "GMeshData.h"
+#include "GGraph.h"
 
 struct MeshNodeForLod   //LODMeshµÄ½Úµã
 {
@@ -29,18 +29,19 @@ class GMeshBufferNode
 
 		bool Render();
 
-		void Add(GMetrialData* data)
+		void Add(GGraph* data)
 		{
 			mRenderData.push_back(data);
 		}
-		WORD SubSetCount() const { return mSubSetCount; }
-		void SubSetCount(WORD val) { mSubSetCount = val; }
+		WORD SubSetCount() const 
+		{
+			return mRenderData.size(); 
+		}
     public:
 		ID3DXMesh*		mMesh;
 		ID3DXMesh* Mesh() const { return mMesh; }
 		void Mesh(ID3DXMesh* val) { mMesh = val; }
-		WORD			mSubSetCount;
-		GRenderDataArr	mRenderData;
+		GMeshResource	mRenderData;
 		String		mFileName;
 };
 

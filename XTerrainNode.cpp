@@ -32,8 +32,8 @@ CXTerrainNode::~CXTerrainNode( void )
 
 void CXTerrainNode::BuildIndices()
 {
-    static XI32 INDEX_WIDTH = mTerrain->GetCellWidth();
-    static XI32 LINE_COUNT = mTerrain->GetLineWidth();
+    static XI32 INDEX_WIDTH = mTerrain->getCellCountPerLine();
+    static XI32 LINE_COUNT = mTerrain->getLineCount();
     static XI32 HALF_WIDTH = INDEX_WIDTH / 2;
 
     XI32 IDX[4] = {0,};

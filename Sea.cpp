@@ -1,8 +1,8 @@
 #include "GGameDemoHeader.h"
 #include "Sea.h"
 #include "GMeshBuffer.h"
-#include "GD9Device.h"
-
+#include "GDevice_D3D.h"
+#include "GTexture.h"
 CSea::CSea( void )
 	:mCreateParam(0)
 {
@@ -10,11 +10,11 @@ CSea::CSea( void )
 
     mpFace = NULL;
 
-    LnCellCount = 0;
+    mCellCount = 0;
     mfMaxHeight = 0;
     mfCellWidth = 0;
     mstrFileName = NULL;
-	CXSafeDelete(mCreateParam);
+	dSafeDelete(mCreateParam);
 }
 
 CSea::~CSea( void )
@@ -28,80 +28,76 @@ bool CSea::Create()
 
     HRESULT hr = S_FALSE;
 
-    SeaVertex *pVertextBuffer = NULL;	  //Mesh的顶点缓冲区
-
-    DWORD *pIndexBuffer = NULL;	  //Mesh的索引缓冲区
 
 
     mMeshBufferNode = new GMeshBufferNode();
-    LnCellCount = mCreateParam->LnCellCount;
+    mCellCount = mCreateParam->LnCellCount;
     mfMaxHeight = mCreateParam->mfMaxHeight;
     mfCellWidth = mCreateParam->mfCellWidth;
     mstrFileName = mCreateParam->mstrFileName;
 
     //SAFERELEASE(mMeshBufferNode->mpRootMesh);
 
-	ID3DXMesh* mesh=0;
-    hr = D3DXCreateMeshFVF(
-             LnCellCount * LnCellCount * 2,
-             ( LnCellCount + 1 ) * ( LnCellCount + 1 ),
-             D3DXMESH_32BIT | D3DXMESH_MANAGED, FVFSea, D9DEVICE->GetDvc(),
-			 &mesh
-         );
-    DebugMsgBox( hr, "创建海面Mesh失败！" );
+	GGraph* renderData=new GGraph;
+	mMeshResource.push_back(renderData);
 
-    DWORD dwIndex = 0;
+	GVertexBufferParam vertexParam;
+	vertexParam.mElementCount=( mCellCount + 1 ) * ( mCellCount + 1 );
+	vertexParam.mElementSizeOfByte=sizeof(SeaVertex);
+	vertexParam.mFVF=FVFSea;
+	vertexParam.mManaged=false;
 
-    mesh->LockVertexBuffer( D3DLOCK_DISCARD, ( void** )&pVertextBuffer );
+	CXASSERT_RETURN_FALSE(renderData->createVertexBuffer(vertexParam));
 
-    for ( int i = 0; i < LnCellCount + 1; i++ )
+	GIndexBufferParam indexParam;
+	indexParam.mElementCount= mCellCount*mCellCount*6;
+	indexParam.mIndex32=true;
+	indexParam.mManaged=true;
+
+	CXASSERT_RETURN_FALSE(renderData->createIndexBuffer(indexParam));
+
+	SeaVertex *pVertextBuffer=(SeaVertex*)renderData->getVertexBufferPointer();
+	DWORD dwIndex=0;
+    for ( int i = 0; i < mCellCount + 1; i++ )
     {
-        for ( int j = 0; j < LnCellCount + 1; j++ )
+        for ( int j = 0; j < mCellCount + 1; j++ )
         {
-            dwIndex = i * ( LnCellCount + 1 ) + j;
+            dwIndex = i * ( mCellCount + 1 ) + j;
 
-            pVertextBuffer[dwIndex].vertex.x = ( j - LnCellCount / 2.0f ) * mfCellWidth;
+            pVertextBuffer[dwIndex].vertex.x = ( j - mCellCount / 2.0f ) * mfCellWidth;
             pVertextBuffer[dwIndex].vertex.y = 0;
-            pVertextBuffer[dwIndex].vertex.z = ( i - LnCellCount / 2.0f ) * mfCellWidth;
+            pVertextBuffer[dwIndex].vertex.z = ( i - mCellCount / 2.0f ) * mfCellWidth;
             pVertextBuffer[dwIndex].u = j / 10.0f;
-            pVertextBuffer[dwIndex].v = ( LnCellCount - i ) / 10.0f;
+            pVertextBuffer[dwIndex].v = ( mCellCount - i ) / 10.0f;
         }
     }
 
-    mesh->UnlockVertexBuffer();
+	renderData->copyVertexBufferToGPU();
 
-    mesh->LockIndexBuffer( D3DLOCK_DISCARD, ( void** )&pIndexBuffer );
+	DWORD *pIndexBuffer =(DWORD*)renderData->getVertexBufferPointer();
 
     DWORD dwBaseIndex = 0;
 
-    for ( int i = 0; i < LnCellCount; i++ )
+    for ( int i = 0; i < mCellCount; i++ )
     {
-        for ( int j = 0; j < LnCellCount; j++ )
+        for ( int j = 0; j < mCellCount; j++ )
         {
-            pIndexBuffer[dwBaseIndex + 0] = i * ( LnCellCount + 1 ) + j;
-            pIndexBuffer[dwBaseIndex + 1] = ( i + 1 ) * ( LnCellCount + 1 ) + j;
-            pIndexBuffer[dwBaseIndex + 2] = ( i + 1 ) * ( LnCellCount + 1 ) + j + 1;
+            pIndexBuffer[dwBaseIndex + 0] = i * ( mCellCount + 1 ) + j;
+            pIndexBuffer[dwBaseIndex + 1] = ( i + 1 ) * ( mCellCount + 1 ) + j;
+            pIndexBuffer[dwBaseIndex + 2] = ( i + 1 ) * ( mCellCount + 1 ) + j + 1;
 
-            pIndexBuffer[dwBaseIndex + 3] = i * ( LnCellCount + 1 ) + j;
-            pIndexBuffer[dwBaseIndex + 4] = ( i + 1 ) * ( LnCellCount + 1 ) + j + 1;;
-            pIndexBuffer[dwBaseIndex + 5] = i * ( LnCellCount + 1 ) + j + 1;
+            pIndexBuffer[dwBaseIndex + 3] = i * ( mCellCount + 1 ) + j;
+            pIndexBuffer[dwBaseIndex + 4] = ( i + 1 ) * ( mCellCount + 1 ) + j + 1;;
+            pIndexBuffer[dwBaseIndex + 5] = i * ( mCellCount + 1 ) + j + 1;
 
             dwBaseIndex += 6;
         }
     }
 
-    mesh->UnlockIndexBuffer();
+    renderData->copyIndexBufferToGPU();
 
-	mMeshBufferNode->Mesh(mesh);
-    mMeshBufferNode->SubSetCount(1);
+	renderData->setTexture(mstrFileName);
 
-    DWORD *pAdj = new DWORD[mesh->GetNumFaces() * 3];
-
-    mesh->GenerateAdjacency( 1.0f, pAdj );
-	GMetrialData* material=new GMetrialData;
-	mMeshBufferNode->Add(material);
-    mpFace = new LPDIRECT3DTEXTURE9[1];
-	material->SetTexture(mstrFileName);
 
     D3DMATERIAL9 mtrl;
     ZeroMemory( &mtrl, sizeof( mtrl ) );
@@ -124,11 +120,9 @@ bool CSea::Create()
     mtrl.Emissive.a = 0.5f;
 
     mtrl.Power = 9.0f;
-	material->SetMetiral(mtrl);
+	renderData->setMetiral(mtrl);
 
-    SetNormal( mMeshBufferNode->Mesh(), D9DEVICE->GetDvc() );
-
-    ResetVectorMesh();
+	renderData->computeNormal();
 
     return true;
 
@@ -165,17 +159,19 @@ void CSea::Update( float fpass )
 
     HRESULT hr = S_FALSE;
 
-    SeaVertex *pVertexBuffer;
 
     DWORD dwIndex = 0;
 
-    mMeshBufferNode->Mesh()->LockVertexBuffer( D3DLOCK_DISCARD, ( void** )&pVertexBuffer );
+	CXASSERT(mMeshResource.size()==1);
+	GGraph* renderData=mMeshResource[0];
+	
+	SeaVertex *pVertexBuffer=(SeaVertex*)renderData->getVertexBufferPointer();
 
-    for ( int i = 0; i < LnCellCount + 1; i++ )
+    for ( int i = 0; i < mCellCount + 1; i++ )
     {
-        for ( int j = 0; j < LnCellCount + 1; j++ )
+        for ( int j = 0; j < mCellCount + 1; j++ )
         {
-            dwIndex = i * ( LnCellCount + 1 ) + j;
+            dwIndex = i * ( mCellCount + 1 ) + j;
             float fDelta = 0;
 
             for ( int k = 0; k < LnQuakeCount; k++ )
@@ -187,7 +183,7 @@ void CSea::Update( float fpass )
         }
     }
 
-    mMeshBufferNode->Mesh()->UnlockVertexBuffer();
+	renderData->copyVertexBufferToGPU();
 
     //DWORD dwTime=timeGetTime();
     char sFileName[128];
@@ -195,10 +191,9 @@ void CSea::Update( float fpass )
     //sprintf(sFileName,"res\\water\\BlueShort\\A21C_%03d.jpg",dwTime%SEAPICNUM);
 
     sprintf( sFileName, "..\\Data\\res\\water\\BlueShort\\A21C_%03d.jpg", dwPicIndex );
-
-    SAFERELEASE( mpFace[0] );
-
-    hr = D3DXCreateTextureFromFileA( D9DEVICE->GetDvc(), sFileName, &mpFace[0] );
+	if(mpFace)
+		mpFace->safeRelease();
+	mpFace=TextureMgr.getResource(sFileName);
 
 }
 
@@ -211,9 +206,9 @@ MeshPara* CSea::CreateParam() const
 
 void CSea::CreateParam( const MeshPara& val )
 {
-	CXSafeDelete(mCreateParam);
+	dSafeDelete(mCreateParam);
 	mCreateParam = new MeshPara;
-	CXMemoryCopy(mCreateParam,(void*)&val,sizeof(MeshPara));
+	dMemoryCopy(mCreateParam,(void*)&val,sizeof(MeshPara));
 }
 
 

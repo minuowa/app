@@ -26,7 +26,7 @@ struct QuakePoint
 };
 
 #define FVFSea D3DFVF_XYZ | D3DFVF_TEX1|D3DFVF_NORMAL
-
+class GTexture;
 class CSea : public GMeshBaseObj
 {
     public:
@@ -46,13 +46,14 @@ public:
     private:
         float mfCellWidth;	    //地图中格子宽度
         float mfMaxHeight;	    //地图的最大高度
-        int	  LnCellCount;	    //地图中每行格子数量
+        int	  mCellCount;	    //地图中每行格子数量
         char* mstrFileName;    //纹理文件名字，X文件名字
         char* mstrHeightMap;   //高度图文件名字
 
 		MeshPara*	mCreateParam;
 
-        LPDIRECT3DTEXTURE9 *mpFace;
+		GTexture* mpFace;
+        //LPDIRECT3DTEXTURE9 *mpFace;
 
         QuakePoint mQuakList[MAX_QUAKE_COUNT];
 

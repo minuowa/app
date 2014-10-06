@@ -8,13 +8,10 @@
     <ClCompile Include="Sea.cpp" />
     <ClCompile Include="XArea.cpp" />
     <ClCompile Include="XCursor.cpp" />
-    <ClCompile Include="XEffect.cpp" />
     <ClCompile Include="XEvent.cpp" />
-    <ClCompile Include="XMeshObj.cpp" />
     <ClCompile Include="XMultiThread.cpp" />
     <ClCompile Include="XTerrain.cpp" />
     <ClCompile Include="XTerrainNode.cpp" />
-    <ClCompile Include="XText.cpp" />
     <ClCompile Include="GRenderObject.cpp" />
     <ClCompile Include="GWorldCorrd.cpp" />
     <ClCompile Include="GSceneMgr.cpp" />
@@ -24,13 +21,10 @@
     <ClCompile Include="GD8Input.cpp" />
     <ClCompile Include="GMeshBuffer.cpp" />
     <ClCompile Include="GBound.cpp" />
-    <ClCompile Include="GTextureBuffer.cpp" />
     <ClCompile Include="GTimer.cpp" />
     <ClCompile Include="GNode.cpp" />
     <ClCompile Include="GFrameWork.cpp" />
-    <ClCompile Include="GMeshData.cpp" />
     <ClCompile Include="GCamera.cpp" />
-    <ClCompile Include="GD9Device.cpp" />
     <ClCompile Include="GGame.cpp" />
     <ClCompile Include="GMeshBaseObj.cpp" />
     <ClCompile Include="GGameMap.cpp" />
@@ -55,8 +49,45 @@
     <ClCompile Include="GComponentTrans.cpp">
       <Filter>Component</Filter>
     </ClCompile>
-    <ClCompile Include="GComponentFactory.cpp" />
     <ClCompile Include="GObject.cpp" />
+    <ClCompile Include="GMaterial.cpp" />
+    <ClCompile Include="FiGameDemo.cpp" />
+    <ClCompile Include="GIndexBuffer.cpp" />
+    <ClCompile Include="GIndexBuffer_D3D.cpp" />
+    <ClCompile Include="GMeshResource.cpp" />
+    <ClCompile Include="GDevice.cpp">
+      <Filter>Graph</Filter>
+    </ClCompile>
+    <ClCompile Include="GDevice_D3D.cpp">
+      <Filter>Graph</Filter>
+    </ClCompile>
+    <ClCompile Include="GTexture_D3D.cpp">
+      <Filter>Graph</Filter>
+    </ClCompile>
+    <ClCompile Include="GTextureBuffer.cpp">
+      <Filter>Graph</Filter>
+    </ClCompile>
+    <ClCompile Include="GVertexBuffer.cpp">
+      <Filter>Graph</Filter>
+    </ClCompile>
+    <ClCompile Include="GVertexBuffer_D3D.cpp">
+      <Filter>Graph</Filter>
+    </ClCompile>
+    <ClCompile Include="GComponentFactory.cpp">
+      <Filter>Component</Filter>
+    </ClCompile>
+    <ClCompile Include="GGLDevice.cpp">
+      <Filter>Graph</Filter>
+    </ClCompile>
+    <ClCompile Include="GDeviceResource.cpp">
+      <Filter>Graph</Filter>
+    </ClCompile>
+    <ClCompile Include="GGraph.cpp">
+      <Filter>Graph</Filter>
+    </ClCompile>
+    <ClCompile Include="GTexture.cpp">
+      <Filter>Graph</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EyeCliper.h" />
@@ -66,13 +97,10 @@
     <ClInclude Include="Sea.h" />
     <ClInclude Include="XArea.h" />
     <ClInclude Include="XCursor.h" />
-    <ClInclude Include="XEffect.h" />
     <ClInclude Include="XEvent.h" />
-    <ClInclude Include="XMeshObj.h" />
     <ClInclude Include="XMultiThread.h" />
     <ClInclude Include="XTerrain.h" />
     <ClInclude Include="XTerrainNode.h" />
-    <ClInclude Include="XText.h" />
     <ClInclude Include="FiGameDemo.h" />
     <ClInclude Include="GRenderObject.h" />
     <ClInclude Include="GWorldCorrd.h" />
@@ -83,13 +111,10 @@
     <ClInclude Include="GD8Input.h" />
     <ClInclude Include="GMeshBuffer.h" />
     <ClInclude Include="GBound.h" />
-    <ClInclude Include="GTextureBuffer.h" />
     <ClInclude Include="GTimer.h" />
     <ClInclude Include="GNode.h" />
     <ClInclude Include="GFrameWork.h" />
-    <ClInclude Include="GMeshData.h" />
     <ClInclude Include="GCamera.h" />
-    <ClInclude Include="GD9Device.h" />
     <ClInclude Include="GGame.h" />
     <ClInclude Include="GMeshBaseObj.h" />
     <ClInclude Include="GGameMap.h" />
@@ -115,11 +140,49 @@
     <ClInclude Include="GComponentMesh.h">
       <Filter>Component</Filter>
     </ClInclude>
-    <ClInclude Include="GComponentFactory.h" />
     <ClInclude Include="GResourceManager.h">
       <Filter>Animation</Filter>
     </ClInclude>
     <ClInclude Include="GObject.h" />
+    <ClInclude Include="Game.h" />
+    <ClInclude Include="GMaterial.h" />
+    <ClInclude Include="GType.h" />
+    <ClInclude Include="GIndexBuffer.h" />
+    <ClInclude Include="GIndexBuffer_D3D.h" />
+    <ClInclude Include="GMeshResource.h" />
+    <ClInclude Include="GDevice_D3D.h">
+      <Filter>Graph</Filter>
+    </ClInclude>
+    <ClInclude Include="GDevice.h">
+      <Filter>Graph</Filter>
+    </ClInclude>
+    <ClInclude Include="GTexture_D3D.h">
+      <Filter>Graph</Filter>
+    </ClInclude>
+    <ClInclude Include="GTextureBuffer.h">
+      <Filter>Graph</Filter>
+    </ClInclude>
+    <ClInclude Include="GVertexBuffer.h">
+      <Filter>Graph</Filter>
+    </ClInclude>
+    <ClInclude Include="GVertexBuffer_D3D.h">
+      <Filter>Graph</Filter>
+    </ClInclude>
+    <ClInclude Include="GComponentFactory.h">
+      <Filter>Component</Filter>
+    </ClInclude>
+    <ClInclude Include="GGLDevice.h">
+      <Filter>Graph</Filter>
+    </ClInclude>
+    <ClInclude Include="GDeviceResource.h">
+      <Filter>Graph</Filter>
+    </ClInclude>
+    <ClInclude Include="GGraph.h">
+      <Filter>Graph</Filter>
+    </ClInclude>
+    <ClInclude Include="GTexture.h">
+      <Filter>Graph</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Animation">
@@ -127,6 +190,9 @@
     </Filter>
     <Filter Include="Component">
       <UniqueIdentifier>{2edb1787-a609-4ce7-b921-47f01164ad44}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graph">
+      <UniqueIdentifier>{6b5d5ac9-aeb4-4da4-924a-cca4c8b8f80d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

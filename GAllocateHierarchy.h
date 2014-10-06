@@ -4,7 +4,7 @@ class GAllocateHierarchy: public ID3DXAllocateHierarchy	//扩展D3D分配层次类
 {
 public:
 
-	GAllocateHierarchy( IDirect3DDevice9 *DVC );
+	GAllocateHierarchy(const char* fileName);
 
 	~GAllocateHierarchy();
 
@@ -29,5 +29,7 @@ public:
 private:
 
 	HRESULT GenerateSkinnedMesh( D3DXMeshContainerEX *pMeshContainerEx );
+
+	String mXFileName;
 
 };

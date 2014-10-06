@@ -4,7 +4,7 @@
 #include "GTextureBuffer.h"
 #include "GMeshBaseObj.h"
 #include "GSceneMgr.h"
-#include "GD9Device.h"
+#include "GDevice_D3D.h"
 //////////////////////////////////////////////////////////////////////////
 CXImpleteSingleton ( GMeshManager );
 GMeshManager::GMeshManager ( void )
@@ -93,29 +93,28 @@ GMeshBufferNode* GMeshManager::CreateFormFile ( const char* fileName )
 
     hr = D3DXLoadMeshFromXA ( fileName,
                               D3DXMESH_MANAGED | D3DXMESH_32BIT,
-                              D9DEVICE->GetDvc(), &pAdj, &pMat, NULL, &LnAttrNum, &rootMesh );
+                              Device->GetDvc(), &pAdj, &pMat, NULL, &LnAttrNum, &rootMesh );
 
     CXASSERT_RESULT_FALSE ( hr );
 
     GMeshBufferNode* node = new GMeshBufferNode;
     node->mFileName = fileName;
     node->mMesh = rootMesh;
-    node->SubSetCount ( LnAttrNum );
 
     D3DXMATERIAL *pMatList = ( D3DXMATERIAL * ) pMat->GetBufferPointer();
 
     for ( DWORD i = 0; i < LnAttrNum; i++ )
     {
-        GMetrialData* metrialData = new GMetrialData;
+        GGraph* metrialData = new GGraph;
 
-        metrialData->SetMetiral ( pMatList[i].MatD3D );
+        metrialData->setMetiral ( pMatList[i].MatD3D );
         CXFileName path ( fileName );
         String textureName = path.GetRelativePath();
 
         if ( pMatList[i].pTextureFilename != NULL )
         {
             textureName.append ( pMatList[i].pTextureFilename );
-            metrialData->SetTexture ( textureName );
+            metrialData->setTexture ( textureName );
         }
     }
     return node;
@@ -136,13 +135,13 @@ GMeshBufferNode::GMeshBufferNode()
 
 bool GMeshBufferNode::Render()
 {
-    CXASSERT_RESULT_FALSE ( mRenderData.size() == mSubSetCount );
     CXASSERT_RETURN_FALSE ( mMesh );
-
-    for ( int i = 0; i < mSubSetCount; ++i )
+	size_t cnt=mRenderData.size();
+	CXASSERT_RETURN_FALSE ( cnt  );
+	for ( int i = 0; i < cnt; ++i )
     {
-        GMetrialData* renderData = mRenderData[i];
-        renderData->Render();
+        GGraph* renderData = mRenderData[i];
+        renderData->draw();
         mMesh->DrawSubset ( i );
     }
     return true;

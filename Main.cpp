@@ -1,22 +1,8 @@
 #include "GGameDemoHeader.h"
 #include "GGame.h"
 #include "FiGameDemo.h"
-extern "C"
-{
-    FiGameDemo_API int FiGameDemo_Init ( HWND mainWnd )
-    {
-        return TheGame->initBase ( mainWnd);
-    }
-    FiGameDemo_API void FiGameDemo_Update()
-    {
-        TheGame->Loop();
-    }
-    FiGameDemo_API void FiGameDemo_ShutDown()
-    {
-        TheGame->ShutDown();
-    }
-}
-#if 1
+
+#ifndef _LIB
 int WINAPI WinMain ( __in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, __in_opt LPSTR lpCmdLine, __in int nShowCmd )
 {
     if ( !FiGameDemo_Init ( 0 ) )
@@ -41,7 +27,7 @@ int WINAPI WinMain ( __in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance,
     FiGameDemo_ShutDown();
     return true;
 }
-#endif
+#endif // !_DLL
 //BOOL APIENTRY DllMain( HMODULE hModule,
 //	DWORD  ul_reason_for_call,
 //	LPVOID lpReserved

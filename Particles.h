@@ -55,7 +55,7 @@ class CRectMesh: public GRenderObject
 
         IDirect3DVertexBuffer9 *mpVB;
 
-        IDirect3DTexture9 *mpFace;
+        IDirect3DTexture9 *mFace;
 
         Particle *pSnow;						//雪花粒子数组
 

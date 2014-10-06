@@ -15,7 +15,7 @@ class GAnimMeshObj: public GRenderObject
     public:
 		virtual bool ReCreate();
 		virtual void Update();
-
+		void setMeshFile(const char* file);
         VOID	UpdateFrameMatrices( LPD3DXFRAME pFrameBase, LPD3DXMATRIX pParentMatrix );
 
         void	DrawMeshContainer( D3DXMESHCONTAINER *pMeshContainerBase, D3DXFRAME *pFrameBase );

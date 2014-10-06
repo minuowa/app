@@ -47,5 +47,5 @@ GComponentInterface* GComponentFactory::Create ( const char* typeName )
 
 GComponentFactory::~GComponentFactory()
 {
-	CXSafeDeleteMap2(mComponentCreatorMap);
+	dSafeDeleteMap2(mComponentCreatorMap);
 }

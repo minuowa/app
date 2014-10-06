@@ -1,7 +1,7 @@
 #include "GGameDemoHeader.h"
 #include "GAnimationResource.h"
 #include "GAllocateHierarchy.h"
-#include "GD9Device.h"
+#include "GDevice_D3D.h"
 HRESULT GAnimationResource::SetupBoneMatrixPointers ( LPD3DXFRAME pFrame )
 {
     HRESULT hr = S_FALSE;
@@ -123,10 +123,11 @@ void GAnimationResource::UpdateBones()
 bool GAnimationResource::CreateFromFile ( const char* name )
 {
     CXASSERT ( name );
-    GAllocateHierarchy Alloc ( D9DEVICE->GetDvc() );
-    HRESULT hr  = D3DXLoadMeshHierarchyFromXA ( name, D3DXMESH_MANAGED, D9DEVICE->GetDvc(), &Alloc, NULL,
+    GAllocateHierarchy Alloc ( name );
+    HRESULT hr  = D3DXLoadMeshHierarchyFromXA ( name, D3DXMESH_MANAGED, Device->GetDvc(), &Alloc, NULL,
                   &mFrameRoot, &mAnimationController );
-    CXASSERT_RESULT_FALSE ( hr );
+    if ( D3DXFERR_FILENOTFOUND == hr )
+        CXASSERT_RESULT_FALSE ( 0 );
     UpdateBones();
     return true;
 }

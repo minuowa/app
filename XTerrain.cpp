@@ -1,55 +1,57 @@
 #include "GGameDemoHeader.h"
 #include "XTerrain.h"
 #include "XTerrainNode.h"
-#include "GD9Device.h"
+#include "GDevice_D3D.h"
+#include "GIndexBuffer.h"
+#include "GVertexBuffer.h"
 
 
-CXTerrain::CXTerrain(void)
-	:mVertexBuffer(0)
-	,mIndexBuffer(0)
+CXTerrain::CXTerrain ( void )
+    : mVertexBuffer ( 0 )
+    , mIndexBuffer ( 0 )
 {
 }
 
 
-CXTerrain::~CXTerrain(void)
+CXTerrain::~CXTerrain ( void )
 {
 }
 
-bool CXTerrain::Init()
+bool CXTerrain::init()
 {
-	mLevel = 8;
-	mRoot = new CXTerrainNode(this,mLevel);
-	return true;
+    mLevel = 8;
+    mRoot = new CXTerrainNode ( this, mLevel );
+	ID3DXMesh
+    return true;
 }
 
-bool CXTerrain::CreateIndexBuffer()
+bool CXTerrain::createIndexBuffer()
 {
-	IDirect3DDevice9 * DVC = D9DEVICE->GetDvc();
+    mIndexBuffer = Device->generateIndexBuffer();
 
-	CHECK_RETURN_BOOL(DVC);
+    GIndexBufferParam param;
+    param.mElementCount = getCellCountPerLine() * getCellCountPerLine() * 6;
+    param.mIndex32 = true;
+    param.mManaged = true;
 
-	if (FAILED(DVC->CreateVertexBuffer(GetLineWidth()*GetLineWidth(),0,
-		CXTerrainVertex::FVF,D3DPOOL_MANAGED,&mVertexBuffer,0))
-		)
-	{
-		assert(0);
-		return false;
-	}
-	return true;
+    CXASSERT_RESULT_FALSE ( mIndexBuffer->create ( param ) );
+
+    return true;
 }
 
-bool CXTerrain::CreateVertexBuffer()
+bool CXTerrain::createVertexBuffer()
 {
-	IDirect3DDevice9 * DVC = D9DEVICE->GetDvc();
+    mVertexBuffer = Device->generateVertexBuffer();
 
-	CHECK_RETURN_BOOL(DVC);
+    GVertexBufferParam param;
+    param.mElementCount = getLineCount() * getLineCount();
+    param.mElementSizeOfByte = sizeof ( CXTerrainVertex );
+    param.mFVF = CXTerrainVertex::FVF;
+    param.mManaged = true;
 
-	if (FAILED(DVC->CreateIndexBuffer(GetCellWidth()*GetCellWidth()*6,0,
-		D3DFMT_INDEX32,D3DPOOL_MANAGED,&mIndexBuffer,0))
-		)
-	{
-		assert(0);
-		return false;
-	}
-	return true;
+    CXASSERT_RESULT_FALSE ( mVertexBuffer->create ( param ) );
+
+    return true;
+
+
 }

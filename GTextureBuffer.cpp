@@ -1,6 +1,6 @@
 #include "GGameDemoHeader.h"
 #include "GTextureBuffer.h"
-#include "GD9Device.h"
+#include "GDevice_D3D.h"
 
 CXImpleteSingleton(GTextureBuffer);
 GTextureBuffer::GTextureBuffer(void)
@@ -19,7 +19,7 @@ GTexture* GTextureBuffer::GetTexture( const char* fileName )
 		IDirect3DTexture9* d9texture=LoadFormFile(fileName);
 		CXASSERT_RETURN_FALSE(d9texture);
 		texture=new GTexture;
-		texture->FileName=fileName;
+		texture->mFileName=fileName;
 		mTextureMap.Insert(fileName,texture);
 	}
 	return texture;
@@ -29,7 +29,7 @@ IDirect3DTexture9* GTextureBuffer::LoadFormFile( const char* fileName )
 {
 	IDirect3DTexture9* texture=0;
 		CXASSERT_RESULT_FALSE(
-			D3DXCreateTextureFromFileA( D9DEVICE->GetDvc(), fileName, &texture )
+			D3DXCreateTextureFromFileA( Device->GetDvc(), fileName, &texture )
 			);
 	return texture;
 }
@@ -42,6 +42,8 @@ GTexture::GTexture()
 
 bool GTexture::Create()
 {
-	mD3DTexture = TextureMgr.LoadFormFile(FileName);
+	mD3DTexture = TextureMgr.LoadFormFile(mFileName);
 	return mD3DTexture!=0;
 }
+
+

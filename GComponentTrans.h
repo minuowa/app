@@ -16,7 +16,11 @@ struct IntersectInfo
     IntersectInfo();
 
 };
-
+//-------------------------------------------------------------------------
+/**
+	@brief GComponentTrans
+	@author nnboy,17/9/2014  22:34
+*/
 class GComponentTrans: public GComponentBase<eComponentType_Trans>
 {
     DeclareComponentType ( GComponentTrans )

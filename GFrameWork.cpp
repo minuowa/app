@@ -91,7 +91,7 @@ bool GFrameWork::isActive() const
 
 void GFrameWork::resize( int w,int h )
 {
-	D9DEVICE->OnResize(w,h);
+	Device->OnResize(w,h);
 }
 
 

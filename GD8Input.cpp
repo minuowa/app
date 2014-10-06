@@ -1,6 +1,6 @@
 #include "GGameDemoHeader.h"
 #include "GD8Input.h"
-#include "GD9Device.h"
+#include "GDevice_D3D.h"
 
 
 GD8Input::GD8Input ( void )
@@ -23,7 +23,7 @@ GD8Input::~GD8Input ( void )
 
 
 
-bool GD8Input::Init ( const GD9Device& device, HINSTANCE hInst, HWND hWin )
+bool GD8Input::Init ( const GDevice_D3D& device, HINSTANCE hInst, HWND hWin )
 {
     CXUnuse ( device );
 
@@ -113,8 +113,8 @@ POINT GD8Input::GetMousePoint()
     float fWidth = ( float ) ( rcNow.right - rcNow.left );
     float fHeight = ( float ) ( rcNow.bottom - rcNow.top );
 
-    pt.x *= ( ( float ) D9DEVICE->mWidth ) / fWidth;
-    pt.y *= ( ( float ) D9DEVICE->mHeight ) / fHeight;
+    pt.x *= ( ( float ) Device->mWidth ) / fWidth;
+    pt.y *= ( ( float ) Device->mHeight ) / fHeight;
 
     return pt;
 }

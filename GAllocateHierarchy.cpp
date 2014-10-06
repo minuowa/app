@@ -1,32 +1,32 @@
 #include "GGameDemoHeader.h"
 #include "GAllocateHierarchy.h"
 #include "GAnimationResource.h"
-#include "GD9Device.h"
+#include "GDevice_D3D.h"
 
 HRESULT AllocateName ( LPCTSTR Name, LPTSTR *pNewName )
 {
-	//Name为空值，返回错误
-	if ( Name == NULL )
-	{
-		*pNewName = NULL;
+    //Name为空值，返回错误
+    if ( Name == NULL )
+    {
+        *pNewName = NULL;
 
 
-		return S_FALSE;
-	}
+        return S_FALSE;
+    }
 
-	int nLen = lstrlen ( Name ) + 1;
+    int nLen = lstrlen ( Name ) + 1;
 
-	*pNewName = new TCHAR[nLen];
+    *pNewName = new TCHAR[nLen];
 
-	//内存不足，返回错误
-	if ( *pNewName == NULL )
-	{
-		return E_OUTOFMEMORY;
-	}
+    //内存不足，返回错误
+    if ( *pNewName == NULL )
+    {
+        return E_OUTOFMEMORY;
+    }
 
-	memcpy ( *pNewName, Name, nLen * sizeof ( TCHAR ) );
+    memcpy ( *pNewName, Name, nLen * sizeof ( TCHAR ) );
 
-	return S_OK;
+    return S_OK;
 
 }
 STDMETHODIMP GAllocateHierarchy::CreateFrame ( LPCSTR Name, LPD3DXFRAME *ppNewFrame )
@@ -199,7 +199,11 @@ STDMETHODIMP GAllocateHierarchy::CreateMeshContainer
         {
             if ( pMeshContainerTmp->pMaterials[i].pTextureFilename != NULL )
             {
-                hr = D3DXCreateTextureFromFileA ( D9DEVICE->GetDvc(), pMeshContainerTmp->pMaterials[i].pTextureFilename, &pMeshContainerTmp->ppTexture[i] );
+                CXFileName fileName ( mXFileName.c_str() );
+                String texName = fileName.GetRelativePath();
+				texName+=CXFileName::PathSpliter;
+                texName += pMeshContainerTmp->pMaterials[i].pTextureFilename;
+                hr = D3DXCreateTextureFromFileA ( Device->GetDvc(), texName.c_str(), &pMeshContainerTmp->ppTexture[i] );
             }
         }
     }
@@ -255,8 +259,10 @@ e_Exit:
     return S_OK;
 }
 
-GAllocateHierarchy::GAllocateHierarchy ( IDirect3DDevice9 * DVC )
+
+GAllocateHierarchy::GAllocateHierarchy ( const char* fileName )
 {
+    mXFileName = fileName;
 }
 
 HRESULT GAllocateHierarchy::DestroyMeshContainer ( LPD3DXMESHCONTAINER pMeshContainerToFree )
@@ -297,7 +303,7 @@ HRESULT GAllocateHierarchy::GenerateSkinnedMesh ( D3DXMeshContainerEX *pMeshCont
     D3DCAPS9 d3dCap;
     ZeroMemory ( &d3dCap, sizeof ( d3dCap ) );
 
-    D9DEVICE->GetDvc()->GetDeviceCaps ( &d3dCap );
+    Device->GetDvc()->GetDeviceCaps ( &d3dCap );
 
     if ( pMeshContainerEx->pSkinInfo == NULL )
     {
@@ -355,7 +361,7 @@ HRESULT GAllocateHierarchy::GenerateSkinnedMesh ( D3DXMeshContainerEX *pMeshCont
              (
                  pMeshContainerEx->MeshData.pMesh->GetOptions() | D3DXMESH_SOFTWAREPROCESSING,
                  pMeshContainerEx->MeshData.pMesh->GetFVF(),
-                 D9DEVICE->GetDvc(), &pMeshTmp
+                 Device->GetDvc(), &pMeshTmp
              );
 
         if ( FAILED ( hr ) )

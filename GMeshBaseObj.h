@@ -1,6 +1,7 @@
 #pragma once
 #include "GBound.h"
 #include "GRenderObject.h"
+#include "GMeshResource.h"
 
 class GMeshBufferNode;
 class GMeshBaseObj :
@@ -20,8 +21,8 @@ class GMeshBaseObj :
         bool Pick( POINT pt );
 
         bool CheckIntersect(
-            D3DXVECTOR4 vPos,	//世界坐标系中的点
-            D3DXVECTOR4 vDir,	//世界坐标系中的向量
+            const D3DXVECTOR4& vPos,	//世界坐标系中的点
+            const D3DXVECTOR4& vDir,	//世界坐标系中的向量
             bool bInsectInfo	//是否需要碰撞信息
         );
 		ID3DXMesh* ResetVectorMesh();
@@ -32,4 +33,6 @@ protected:
 public:
 
 		bool Create();
+
+		GMeshResource mMeshResource;
 };

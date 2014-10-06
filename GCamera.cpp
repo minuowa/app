@@ -19,7 +19,7 @@ GCamera::GCamera ( void )
 
     matView = NORMALMATRIX;
 
-	D9DEVICE->mOnResstDevice+=this;
+	Device->mOnResetDevice+=this;
 }
 
 GCamera::~GCamera ( void )
@@ -29,13 +29,13 @@ GCamera::~GCamera ( void )
 
 void GCamera::SetProj()
 {
-    float aspect = ( ( float ) ( D9DEVICE->mWidth ) ) / ( ( float ) ( D9DEVICE->mHeight ) );
+    float aspect = ( ( float ) ( Device->mWidth ) ) / ( ( float ) ( Device->mHeight ) );
 
     D3DXMatrixPerspectiveFovLH ( &matProj, D3DX_PI / 4.0f, aspect, 1.0f, Max_Eye_Distance );
 
-    if ( D9DEVICE != NULL )
+    if ( Device != NULL )
     {
-        D9DEVICE->GetDvc()->SetTransform ( D3DTS_PROJECTION, &matProj );
+        Device->GetDvc()->SetTransform ( D3DTS_PROJECTION, &matProj );
     }
 
     mpEyeCliper = new CEyeCliper ( Max_Eye_Distance, D3DX_PI / 4.0f, aspect );
@@ -57,9 +57,9 @@ void GCamera::SetView()
 
     D3DXMatrixLookAtLH ( &matView, &GetTrans().mTranslate, &vLookAtPos, &GetTrans().mvUpon );
 
-    if ( D9DEVICE != NULL )
+    if ( Device != NULL )
     {
-        D9DEVICE->GetDvc()->SetTransform ( D3DTS_VIEW, &matView );
+        Device->GetDvc()->SetTransform ( D3DTS_VIEW, &matView );
     }
 }
 
@@ -73,7 +73,7 @@ void GCamera::GetInput ( DWORD frameTimeMs )
 
     POINT pt = INPUTSYSTEM.GetMousePoint();
 
-    if ( pt.x < 0 || pt.x > D9DEVICE->mWidth || pt.y < 0 || pt.y > D9DEVICE->mHeight )
+    if ( pt.x < 0 || pt.x > Device->mWidth || pt.y < 0 || pt.y > Device->mHeight )
     {
         return;			//鼠标在客户区外面就不执行GetInput
     }
@@ -174,7 +174,7 @@ void GCamera::Update()
 
 void GCamera::onCallBack( const CXDelegate& delgate )
 {
-	if (delgate==D9DEVICE->mOnResstDevice)
+	if (delgate==Device->mOnResetDevice)
 	{
 		SetProj();
 	}

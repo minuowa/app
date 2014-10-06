@@ -1,7 +1,7 @@
 #include "GGameDemoHeader.h"
 #include "GGameMap.h"
 #include "GMeshBuffer.h"
-#include "GD9Device.h"
+#include "GDevice_D3D.h"
 
 GGameMap::GGameMap( void )
     : _pTexture( 0 )
@@ -52,7 +52,7 @@ bool GGameMap::Render()
 		return false;
     D3DXMATRIX mat;
     D3DXMatrixIdentity( &mat );
-    D9DEVICE->GetDvc()->SetTransform( D3DTS_TEXTURE0, &mat );
+    Device->GetDvc()->SetTransform( D3DTS_TEXTURE0, &mat );
 
     return true;
 
@@ -157,7 +157,7 @@ int GGameMap::AfterCreate()
     hr = D3DXCreateMeshFVF(
              LnCellCount * LnCellCount * 2,
              ( LnCellCount + 1 ) * ( LnCellCount + 1 ),
-             D3DXMESH_32BIT | D3DXMESH_MANAGED, FVFMAP, D9DEVICE->GetDvc(), &_pMesh
+             D3DXMESH_32BIT | D3DXMESH_MANAGED, FVFMAP, Device->GetDvc(), &_pMesh
          );
 
     if ( FAILED( hr ) )
@@ -194,13 +194,13 @@ int GGameMap::AfterCreate()
     //设置纹理
     if ( mstrFileName != NULL )
     {
-        hr = D3DXCreateTextureFromFileA( D9DEVICE->GetDvc(), mstrFileName, &_pTexture[0] );
+        hr = D3DXCreateTextureFromFileA( Device->GetDvc(), mstrFileName, &_pTexture[0] );
     }
 
     //读取高度图
     if ( mstrHeightMap != NULL )
     {
-        hr = D3DXCreateTextureFromFileA( D9DEVICE->GetDvc(), mstrHeightMap, &pHeightMap );
+        hr = D3DXCreateTextureFromFileA( Device->GetDvc(), mstrHeightMap, &pHeightMap );
     }
 
     pHeightMap->GetLevelDesc( 0, &surfaceDesc );
@@ -303,15 +303,15 @@ int GGameMap::AfterCreate()
     mMeshBufferNode->Mesh(_pMesh);
     mLighting = true;
 
-	GMetrialData* data = new GMetrialData;
-	data->SetTexture(mstrFileName);
-	data->SetMetiral(*_pMat);
+	GGraph* data = new GGraph;
+	data->setTexture(mstrFileName);
+	data->setMetiral(*_pMat);
 	mMeshBufferNode->Add(data);
     _pMesh->GenerateAdjacency( 1.0f, pAdj );
 
     mMeshBufferNode->MakeLod( pAdj );
 
-    SetNormal( mMeshBufferNode->Mesh(), D9DEVICE->GetDvc() );
+    SetNormal( mMeshBufferNode->Mesh(), Device->GetDvc() );
 
     ResetVectorMesh();
 

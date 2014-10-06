@@ -131,7 +131,7 @@ D3DXMATRIX GNode::GetWorldMatrix ( bool bForTrans )
 
     }
 
-    D9DEVICE->GetDvc()->SetTransform ( D3DTS_WORLD, &_matWorld );
+    Device->GetDvc()->SetTransform ( D3DTS_WORLD, &_matWorld );
 
     return _matWorld;
 }

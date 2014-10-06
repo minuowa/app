@@ -21,7 +21,7 @@ GSceneMgr::~GSceneMgr ( void )
 
 }
 
-bool GSceneMgr::Init( const GD9Device& DVC )
+bool GSceneMgr::Init( const GDevice_D3D& DVC )
 {
     InitNodeFactory();
     InitComponentFactory();
