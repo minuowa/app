@@ -21,7 +21,6 @@ bool CXTerrain::init()
 {
     mLevel = 8;
     mRoot = new CXTerrainNode ( this, mLevel );
-	ID3DXMesh
     return true;
 }
 
